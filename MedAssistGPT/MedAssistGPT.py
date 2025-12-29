@@ -17,6 +17,15 @@ Automatic checkpointing and HuggingFace uploads
 ## Imports
 """
 
+# =============================================================================
+# MODEL
+# =============================================================================
+# Model Name:        MedAssist-GPT-401M
+# Description:       A 401M parameter medical domain LLM pretrained on PubMed abstracts with modern architecture features.
+# HuggingFace:       https://huggingface.co/kunjcr2/MedAssist-GPT-401M
+# Parameters:        401M
+# =============================================================================
+
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
