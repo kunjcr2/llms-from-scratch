@@ -17,37 +17,21 @@ Automatic checkpointing and HuggingFace uploads
 ## Imports
 """
 
-# =============================================================================
-# MODEL
-# =============================================================================
-# Model Name:        MedAssist-GPT-401M
-# Description:       A 401M parameter medical domain LLM pretrained on PubMed abstracts with modern architecture features.
-# HuggingFace:       https://huggingface.co/kunjcr2/MedAssist-GPT-401M
-# Parameters:        401M
-# =============================================================================
-
-import numpy as np
-import torch
-from torch.utils.data import Dataset, DataLoader
-from tqdm import tqdm
-from datasets import load_dataset
-from bs4 import BeautifulSoup, NavigableString
-import tiktoken
-
+# Core Python
 import os
 import json
-import shutil
-from pathlib import Path
-from typing import Dict, List, Tuple, Any
-import math
-
-import pickle
 import gc
-from pathlib import Path
 import re
 import html
-from bs4 import BeautifulSoup, NavigableString
+import math
+import pickle
+import multiprocessing as mp
+from pathlib import Path
+from typing import Dict, List, Tuple, Any, Optional
+from functools import partial
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
+# PyTorch
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -55,18 +39,14 @@ from torch.utils.data import Dataset, DataLoader
 from torch.amp import autocast
 from torch.optim.lr_scheduler import OneCycleLR
 
+# Data & ML
 import numpy as np
-import pandas as pd
-import multiprocessing as mp
-
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from functools import partial
-
 import tiktoken
 import wandb
 from datasets import load_dataset, concatenate_datasets
 from huggingface_hub import login, create_repo, upload_folder, HfApi
 from tqdm import tqdm
+from bs4 import BeautifulSoup, NavigableString
 
 """## CONFIGURATION"""
 
@@ -152,29 +132,29 @@ class RoPE(nn.Module):
             # e^(2i*(-log(10000))/d_model)
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, position_offset: int = 0) -> torch.Tensor:
         batch_size, seq_len, d_model = x.shape
 
-        # Get positions
-        position_ids = self.position_ids[:seq_len] # (seq_len, 1)
+        # Get positions with offset for KV cache
+        position_ids = self.position_ids[position_offset:position_offset + seq_len]  # (seq_len, 1)
 
         # Calculate angles
-        angles = position_ids * self.div_term # (seq_len, d_model/2)
+        angles = position_ids * self.div_term  # (seq_len, d_model/2)
         cos_vals = torch.cos(angles)
         sin_vals = torch.sin(angles)
 
         # Reshape for rotation
-        x_pairs = x.view(batch_size, seq_len, d_model // 2, 2) # (b, s, d//2, 2)
-        x_even = x_pairs[..., 0] # (b, s, d//2)
-        x_odd = x_pairs[..., 1] # (b, s, d//2)
+        x_pairs = x.view(batch_size, seq_len, d_model // 2, 2)  # (b, s, d//2, 2)
+        x_even = x_pairs[..., 0]  # (b, s, d//2)
+        x_odd = x_pairs[..., 1]  # (b, s, d//2)
 
         # Apply rotation
         rotated_even = x_even * cos_vals - x_odd * sin_vals
         rotated_odd = x_even * sin_vals + x_odd * cos_vals
 
         # Reconstruct
-        rotated_pairs = torch.stack([rotated_even, rotated_odd], dim=-1) # (b, s, d//2, 2)
-        rotated_x = rotated_pairs.view(batch_size, seq_len, d_model) # (b, s, d)
+        rotated_pairs = torch.stack([rotated_even, rotated_odd], dim=-1)  # (b, s, d//2, 2)
+        rotated_x = rotated_pairs.view(batch_size, seq_len, d_model)  # (b, s, d)
 
         return rotated_x
 
@@ -209,35 +189,70 @@ class GroupedQueryAttention(nn.Module):
         self.rope_q = RoPE(d_model=n_heads * self.head_dim, max_len=max_len)
         self.rope_k = RoPE(d_model=self.n_kv_heads * self.head_dim, max_len=max_len)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        past_key_value: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
+        use_cache: bool = False
+    ):
         B, T, C = x.shape
+
+        # Determine position offset from cache
+        if past_key_value is not None:
+            # past_key_value: (past_k, past_v) each of shape (B, H_kv, past_len, D)
+            position_offset = past_key_value[0].shape[2]
+        else:
+            position_offset = 0
 
         # Project Q, K, V
         q = self.q_proj(x)  # (B, T, H*D)
         k = self.k_proj(x)  # (B, T, H_kv*D)
         v = self.v_proj(x)  # (B, T, H_kv*D)
 
-        # Apply RoPE
-        q = self.rope_q(q)
-        k = self.rope_k(k)
+        # Apply RoPE with position offset
+        q = self.rope_q(q, position_offset=position_offset)
+        k = self.rope_k(k, position_offset=position_offset)
 
         # Reshape to heads
         q = q.view(B, T, self.n_heads, self.head_dim).transpose(1, 2)  # (B, H, T, D)
         k = k.view(B, T, self.n_kv_heads, self.head_dim).transpose(1, 2)  # (B, H_kv, T, D)
         v = v.view(B, T, self.n_kv_heads, self.head_dim).transpose(1, 2)  # (B, H_kv, T, D)
 
+        # Concatenate with past KV if present
+        if past_key_value is not None:
+            past_k, past_v = past_key_value
+            k = torch.cat([past_k, k], dim=2)  # (B, H_kv, past_len + T, D)
+            v = torch.cat([past_v, v], dim=2)  # (B, H_kv, past_len + T, D)
+
+        # Store new cache if needed (before GQA expansion)
+        new_cache = (k, v) if use_cache else None
+
         # Expand K and V for GQA
         expand_factor = self.n_heads // self.n_kv_heads
-        k = k.repeat_interleave(expand_factor, dim=1)  # (B, H, T, D)
-        v = v.repeat_interleave(expand_factor, dim=1)  # (B, H, T, D)
+        k_expanded = k.repeat_interleave(expand_factor, dim=1)  # (B, H, total_len, D)
+        v_expanded = v.repeat_interleave(expand_factor, dim=1)  # (B, H, total_len, D)
 
-        # Scaled dot-product attention with Flash Attention if available
-        out = F.scaled_dot_product_attention(
-            q, k, v,
-            attn_mask=None,
-            dropout_p=0.0,
-            is_causal=True
-        )
+        # Scaled dot-product attention
+        # When using cache, we only have new queries attending to all keys
+        # is_causal=True only works when q and k have same length
+        if past_key_value is not None:
+            # During generation: q has length 1 (or few), k/v have full length
+            # Cannot use is_causal=True, need explicit causal mask or no mask
+            # For autoregressive generation of single token, no mask needed
+            out = F.scaled_dot_product_attention(
+                q, k_expanded, v_expanded,
+                attn_mask=None,
+                dropout_p=0.0,
+                is_causal=False  # Single query attends to all past + current
+            )
+        else:
+            # Training or first inference step: standard causal attention
+            out = F.scaled_dot_product_attention(
+                q, k_expanded, v_expanded,
+                attn_mask=None,
+                dropout_p=0.0,
+                is_causal=True
+            )
 
         # Merge heads
         out = out.transpose(1, 2).contiguous().view(B, T, self.n_heads * self.head_dim)
@@ -245,6 +260,8 @@ class GroupedQueryAttention(nn.Module):
         # Output projection
         out = self.o_proj(out)
 
+        if use_cache:
+            return out, new_cache
         return out
 
 
@@ -285,11 +302,25 @@ class TransformerBlock(nn.Module):
 
         self.dropout = nn.Dropout(config["dropout_p"])
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Pre-norm attention
-        x = x + self.dropout(self.attn(self.rms1(x)))
+    def forward(
+        self,
+        x: torch.Tensor,
+        layer_past: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
+        use_cache: bool = False
+    ):
+        # Pre-norm attention with optional cache
+        if use_cache:
+            attn_out, present = self.attn(self.rms1(x), past_key_value=layer_past, use_cache=True)
+            x = x + self.dropout(attn_out)
+        else:
+            x = x + self.dropout(self.attn(self.rms1(x)))
+            present = None
+
         # Pre-norm MLP
         x = x + self.dropout(self.mlp(self.rms2(x)))
+
+        if use_cache:
+            return x, present
         return x
 
 
@@ -325,13 +356,33 @@ class MedAssistGPT(nn.Module):
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
-    def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        input_ids: torch.Tensor,
+        past_key_values: Optional[List[Tuple[torch.Tensor, torch.Tensor]]] = None,
+        use_cache: bool = False
+    ):
+        """
+        Args:
+            input_ids: (batch, seq_len)
+            past_key_values: List of (k, v) tuples, one per layer. None for training.
+            use_cache: If True, return (logits, new_past_key_values). If False, return logits only.
+        """
         # input_ids: (batch, seq_len)
         h = self.embed(input_ids)  # (batch, seq_len, d_model)
 
+        # Initialize presents list for caching
+        presents = [] if use_cache else None
+
         # Pass through transformer blocks
-        for block in self.blocks:
-            h = block(h)
+        for i, block in enumerate(self.blocks):
+            layer_past = past_key_values[i] if past_key_values is not None else None
+
+            if use_cache:
+                h, present = block(h, layer_past=layer_past, use_cache=True)
+                presents.append(present)
+            else:
+                h = block(h)
 
         # Final normalization
         h = self.final_rms(h)
@@ -339,6 +390,8 @@ class MedAssistGPT(nn.Module):
         # Language model head
         logits = self.lm_head(h)  # (batch, seq_len, vocab_size)
 
+        if use_cache:
+            return logits, presents
         return logits
 
     def count_parameters(self) -> int:
@@ -447,8 +500,8 @@ class MemoryMappedDataset(Dataset):
             mmap_mode='r'
         )
 
-        print(f"📂 Memory-mapped dataset: {len(self.inputs_mmap):,} samples")
-        print(f"💾 RAM overhead: ~0 MB (OS manages it)")
+        print(f"Memory-mapped dataset: {len(self.inputs_mmap):,} samples")
+        print(f"RAM overhead: ~0 MB (OS manages it)")
 
     def __len__(self) -> int:
         return len(self.inputs_mmap)
@@ -576,10 +629,10 @@ def process_dataset_in_chunks(
     # Determine number of workers
     num_workers = min(mp.cpu_count(), 8)  # Max 8 workers (diminishing returns)
 
-    print(f"🔥 Processing dataset: {dataset_name}")
-    print(f"📊 Chunk size: {chunk_size} documents")
-    print(f"🧹 Cleaning enabled: {use_clean}")
-    print(f"⚡ Parallel workers: {num_workers}")
+    print(f"Processing dataset: {dataset_name}")
+    print(f"Chunk size: {chunk_size} documents")
+    print(f"Cleaning enabled: {use_clean}")
+    print(f"Parallel workers: {num_workers}")
 
     # Load dataset in streaming mode
     dataset = load_dataset(dataset_name, split="train", streaming=True)
@@ -593,7 +646,7 @@ def process_dataset_in_chunks(
     total_docs_processed = 0
     total_tokens = 0
 
-    print("🔄 Loading documents into batches...")
+    print("Loading documents into batches...")
 
     # Collect documents into batches
     # WHY: Can't parallelize streaming iterator directly
@@ -612,8 +665,8 @@ def process_dataset_in_chunks(
     if current_batch:
         doc_batches.append(current_batch)
 
-    print(f"📦 Created {len(doc_batches)} batches of ~{chunk_size} documents each")
-    print(f"⚡ Processing with {num_workers} parallel workers...")
+    print(f"Created {len(doc_batches)} batches of ~{chunk_size} documents each")
+    print(f"Processing with {num_workers} parallel workers...")
 
     # PARALLEL PROCESSING STARTS HERE!
     # ProcessPoolExecutor creates worker processes
@@ -653,19 +706,19 @@ def process_dataset_in_chunks(
 
                 # Show progress
                 if len(inputs) > 0:
-                    print(f"✅ Chunk done: {len(inputs)} samples, {docs_proc} docs, {tokens_proc:,} tokens")
+                    print(f"Chunk done: {len(inputs)} samples, {docs_proc} docs, {tokens_proc:,} tokens")
 
             except Exception as e:
-                print(f"⚠️  Worker failed: {e}")
+                print(f"Worker failed: {e}")
                 continue
 
-    print(f"\n📊 Parallel processing complete!")
+    print(f"\nParallel processing complete!")
     print(f"   Documents processed: {total_docs_processed:,}")
     print(f"   Total tokens: {total_tokens:,}")
     print(f"   Training samples: {len(all_inputs):,}")
 
     # Save to disk (same as before)
-    print("💾 Saving to disk as memory-mapped arrays...")
+    print("Saving to disk as memory-mapped arrays...")
 
     inputs_array = np.array(all_inputs, dtype=np.int32)
     targets_array = np.array(all_targets, dtype=np.int32)
@@ -686,7 +739,7 @@ def process_dataset_in_chunks(
     with open(cache_dir / "metadata.pkl", "wb") as f:
         pickle.dump(metadata, f)
 
-    print(f"✅ Saved to {cache_dir}")
+    print(f"Saved to {cache_dir}")
 
     # Clear RAM
     del all_inputs, all_targets, inputs_array, targets_array
@@ -764,7 +817,7 @@ def prepare_medical_data(
     val_exists = (val_cache / "metadata.pkl").exists()
 
     if train_exists and val_exists:
-        print("✅ Found cached data! Skipping processing.")
+        print("Found cached data! Skipping processing.")
         print(f"   Train cache: {train_cache}")
         print(f"   Val cache: {val_cache}")
         return train_cache, val_cache
@@ -774,7 +827,7 @@ def prepare_medical_data(
     train_size = int(total_samples * config.get("train_split", 0.95))
     val_size = total_samples - train_size
 
-    print(f"📊 Dataset split:")
+    print(f"Dataset split:")
     print(f"   Training: {train_size:,} documents")
     print(f"   Validation: {val_size:,} documents")
 
@@ -844,7 +897,7 @@ def prepare_medical_data(
         )
 
     print("\n" + "="*80)
-    print("✅ DATA PREPARATION COMPLETE!")
+    print("DATA PREPARATION COMPLETE!")
     print("="*80)
 
     return train_cache, val_cache
@@ -943,7 +996,7 @@ def save_checkpoint(
 
     save_path = save_dir / f"checkpoint_step_{step}.pt"
     torch.save(checkpoint, save_path)
-    print(f"💾 Checkpoint saved: {save_path}")
+    print(f"Checkpoint saved: {save_path}")
 
     return save_path
 
@@ -973,9 +1026,9 @@ def upload_to_huggingface(
             commit_message=f"Training checkpoint at step {step}"
         )
 
-        print(f"☁️  Uploaded to HuggingFace: {repo_id}")
+        print(f"Uploaded to HuggingFace: {repo_id}")
     except Exception as e:
-        print(f"⚠️  Failed to upload to HuggingFace: {e}")
+        print(f"Failed to upload to HuggingFace: {e}")
 
 """## Training loop"""
 
@@ -993,13 +1046,13 @@ def train(
     """Main training loop with all optimizations"""
 
     print("=" * 80)
-    print("🚀 STARTING MEDICAL LLM PRETRAINING")
+    print("STARTING MEDICAL LLM PRETRAINING")
     print("=" * 80)
-    print(f"📊 Model: {model.count_parameters():,} parameters")
-    print(f"📊 Training batches: {len(train_loader):,}")
-    print(f"📊 Max steps: {config['max_steps']:,}")
-    print(f"📊 Effective batch size: {config['batch_size'] * config['gradient_accumulation_steps']}")
-    print(f"📊 Device: {device}")
+    print(f"Model: {model.count_parameters():,} parameters")
+    print(f"Training batches: {len(train_loader):,}")
+    print(f"Max steps: {config['max_steps']:,}")
+    print(f"Effective batch size: {config['batch_size'] * config['gradient_accumulation_steps']}")
+    print(f"Device: {device}")
     print("=" * 80)
 
     model.train()
@@ -1045,7 +1098,7 @@ def train(
                     tokens_seen += input_batch.numel() * grad_accum
 
                     # Log training loss
-                    train_losses.append(loss.item() * grad_accum)
+                    # train_losses.append(loss.item() * grad_accum)
                     epoch_loss += loss.item() * grad_accum
                     epoch_steps += 1
 
@@ -1061,7 +1114,7 @@ def train(
                         val_loss = evaluate_model(
                             model, val_loader, device, config["eval_iter"]
                         )
-                        val_losses.append(val_loss)
+                        # val_losses.append(val_loss)
 
                         # Log to wandb
                         wandb.log({
@@ -1073,7 +1126,7 @@ def train(
                         # Check for improvement
                         if val_loss < best_val_loss:
                             best_val_loss = val_loss
-                            print(f"\n✨ New best validation loss: {val_loss:.4f}")
+                            print(f"\nNew best validation loss: {val_loss:.4f}")
 
                     # Save checkpoint
                     if global_step % config["save_freq"] == 0:
@@ -1093,7 +1146,7 @@ def train(
 
                     # Check if max steps reached
                     if global_step >= config["max_steps"]:
-                        print(f"\n🎉 Reached max steps ({config['max_steps']})")
+                        print(f"\nReached max steps ({config['max_steps']})")
                         raise StopIteration
 
                     wandb.log({
@@ -1106,20 +1159,20 @@ def train(
             print(f"\nEpoch {epoch+1} complete - Avg loss: {avg_epoch_loss:.4f}")
 
     except (KeyboardInterrupt, StopIteration):
-        print("\n⚠️  Training stopped")
+        print("\nTraining stopped")
 
     # Final checkpoint
-    print("\n💾 Saving final checkpoint...")
+    print("\nSaving final checkpoint...")
     save_checkpoint(
         model, optimizer, scheduler,
         global_step, train_losses[-1] if train_losses else 0,
         save_dir, MODEL_CONFIG
     )
 
-    print(f"\n🎉 Training complete!")
-    print(f"📊 Total steps: {global_step:,}")
-    print(f"📊 Total tokens: {tokens_seen:,}")
-    print(f"📊 Best validation loss: {best_val_loss:.4f}")
+    print(f"\nTraining complete!")
+    print(f" Total steps: {global_step:,}")
+    print(f" Total tokens: {tokens_seen:,}")
+    print(f" Best validation loss: {best_val_loss:.4f}")
 
     return train_losses, val_losses
 
@@ -1132,21 +1185,21 @@ def main():
 
     # Setup device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"🔧 Using device: {device}")
+    print(f"Using device: {device}")
 
     # Create save directory
     save_dir = Path("./checkpoints")
     save_dir.mkdir(exist_ok=True)
 
     # Initialize tokenizer
-    print("🔧 Loading tokenizer...")
+    print("Loading tokenizer...")
     tokenizer = tiktoken.get_encoding("p50k_base")
 
     # Load and prepare data
     train_tokens, val_tokens = prepare_medical_data(DATA_CONFIG, tokenizer)
 
     # Create dataloaders
-    print("🔧 Creating dataloaders...")
+    print("Creating dataloaders...")
     train_loader = create_dataloader(
         Path("/content/data_cache/train/"),
         batch_size=TRAINING_CONFIG["batch_size"],
@@ -1166,16 +1219,16 @@ def main():
     )
 
     # Initialize model
-    print("🔧 Initializing model...")
+    print("Initializing model...")
     model = MedAssistGPT(MODEL_CONFIG)
     model = model.to(device)
 
     # Compile model (PyTorch 2.0+)
     if hasattr(torch, 'compile'):
-        print("🔧 Compiling model...")
+        print("Compiling model...")
         model = torch.compile(model, mode="default", fullgraph=False, dynamic=True)
 
-    print(f"✅ Model has {model.count_parameters():,} parameters")
+    print(f"Model has {model.count_parameters():,} parameters")
 
     # Initialize optimizer
     optimizer = torch.optim.AdamW(
@@ -1210,9 +1263,9 @@ def main():
         try:
             login()
             create_repo(HF_CONFIG["repo_id"], repo_type="model", exist_ok=True)
-            print(f"✅ HuggingFace repo ready: {HF_CONFIG['repo_id']}")
+            print(f"HuggingFace repo ready: {HF_CONFIG['repo_id']}")
         except Exception as e:
-            print(f"⚠️  HuggingFace setup failed: {e}")
+            print(f"HuggingFace setup failed: {e}")
             HF_CONFIG["upload_checkpoints"] = False
 
 
@@ -1230,7 +1283,7 @@ def main():
     )
 
     wandb.finish()
-    print("\n✅ All done!")
+    print("\nAll done!")
 
 if __name__ == "__main__":
     main()
@@ -1238,6 +1291,12 @@ if __name__ == "__main__":
 """## Inference"""
 
 def generate_text(model, tokenizer, inference_config: Dict[str, Any], device: str = 'cuda'):
+    """
+    Generate text using KV cache for efficient autoregressive generation.
+
+    First step: Process the full prompt, cache K/V.
+    Subsequent steps: Only feed the new token, reuse cached K/V.
+    """
     model.eval()
     model.to(device)
 
@@ -1250,27 +1309,35 @@ def generate_text(model, tokenizer, inference_config: Dict[str, Any], device: st
     input_ids = torch.tensor(encoded_input, dtype=torch.long).unsqueeze(0).to(device)
 
     generated_tokens = []
+    past_key_values = None
 
     with torch.no_grad():
-        for _ in range(max_new_tokens):
-            # Take the last 'max_len' tokens if input_ids is longer
-            current_input_ids = input_ids if input_ids.size(1) <= model.config['max_len'] else input_ids[:, -model.config['max_len']:]
-
-            logits = model(current_input_ids) # (1, seq_len, vocab_size)
-            logits = logits[:, -1, :] # Take the logits for the last token (1, vocab_size)
-
-            # Apply temperature
-            if temperature == 0.0:
-                next_token = torch.argmax(logits, dim=-1).unsqueeze(1) # Ensure (1, 1) shape
+        for step in range(max_new_tokens):
+            # First step: process full prompt
+            # Subsequent steps: only feed the last generated token
+            if past_key_values is None:
+                current_input = input_ids
             else:
-                probs = torch.softmax(logits / temperature, dim=-1)
-                next_token = torch.multinomial(probs, num_samples=1) # Already (1, 1) shape
+                current_input = input_ids[:, -1:]  # Only the new token
 
-            # Append the new token to the generated sequence
+            # Forward pass with caching
+            logits, past_key_values = model(current_input, past_key_values=past_key_values, use_cache=True)
+
+            # Get logits for the last position
+            next_token_logits = logits[:, -1, :]  # (1, vocab_size)
+
+            # Apply temperature sampling
+            if temperature == 0.0:
+                next_token = torch.argmax(next_token_logits, dim=-1).unsqueeze(1)
+            else:
+                probs = torch.softmax(next_token_logits / temperature, dim=-1)
+                next_token = torch.multinomial(probs, num_samples=1)
+
+            # Append the new token
             generated_tokens.append(next_token.item())
-            input_ids = torch.cat((input_ids, next_token), dim=1) # Removed .unsqueeze(0)
+            input_ids = torch.cat([input_ids, next_token], dim=1)
 
-            # Stop if endoftext token is generated
+            # Stop if end-of-text token is generated
             if next_token.item() == tokenizer.eot_token:
                 break
 
