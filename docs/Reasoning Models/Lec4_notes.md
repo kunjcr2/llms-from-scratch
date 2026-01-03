@@ -9,3 +9,5 @@ $Q_t(a) = (R_1+R_2+...+R_{N_t})/N_t$
 - BRO IS TALKING ABOUT `GREEDY ACTION`. We use a small epsilon (lets say 0.1) that makes 10 moves go NON GREEDY out of 100 moves.
 - haha lol.
 - Its a great practical way to show how agent learns in the environment.
+
+> # **UPCOMING REINFORCEMENT LEARNING STUFF WILL BE IN ../RL**
