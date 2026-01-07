@@ -62,7 +62,7 @@ The value function $V(S')$ serves as a proxy for all future rewards!
 Full Return (MC):     G_t = R₁ + γR₂ + γ²R₃ + γ³R₄ + ...
                            ↓
 TD Approximation:     R₁ + γ × V(S')
-                           └── Estimate of (R₂ + γR₃ + γ²R₄ + ...)
+                                └── Estimate of (R₂ + γR₃ + γ²R₄ + ...)
 ```
 
 Since $V(S')$ is defined as the expected value of all future returns from state $S'$, it's a reasonable approximation of what we'd get if we waited until the end.
