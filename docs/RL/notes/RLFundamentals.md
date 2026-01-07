@@ -1,3 +1,5 @@
+# RL Fundamentals
+
 Supervised Learning - Data and labels
 Unsupervised Learning - Not labeled - clustering of data and such
 Reinforcement learning - Models learn from interactions with the evironment

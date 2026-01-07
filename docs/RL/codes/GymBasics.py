@@ -1,3 +1,10 @@
+"""
+Basic Gymnasium/CartPole Demo
+
+A simple demonstration of how to use OpenAI Gymnasium (formerly Gym)
+to render and interact with an environment.
+"""
+
 import gymnasium as gym
 
 env = gym.make("CartPole-v1", render_mode="human") # rendering the environment

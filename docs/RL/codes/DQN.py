@@ -1,5 +1,3 @@
-# IM NOT GONNA FCKN READ THESE 
-
 """
 Deep Q-Network (DQN) for Pong with PyTorch
 

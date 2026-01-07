@@ -1,8 +1,8 @@
-Deep Q-Network (DQN)
+# Deep Q-Network (DQN)
 
 ⸻
 
-1. The Motivation
+## 1. The Motivation
 
 In traditional Q-learning, we had a Q-table that stored the expected long-term reward for every state–action pair.
 That works fine for simple problems like grid worlds, but when we deal with environments like the game of Pong, it becomes impossible.
@@ -19,10 +19,10 @@ That is exactly what a Deep Q-Network (DQN) does.
 
 ⸻
 
-2. What the Agent Sees and Does
+## 2. What the Agent Sees and Does
 
 In Pong:
-	•	State (s): one game frame (later, we’ll use four stacked frames so the agent sees motion).
+	•	State (s): one game frame (later, we'll use four stacked frames so the agent sees motion).
 	•	Actions (a): move paddle up, move paddle down, or do nothing.
 	•	Reward (r):
 	•	+1 if we score a point,
@@ -33,7 +33,7 @@ So the agent receives a frame (the observation), chooses one of three actions, a
 
 ⸻
 
-3. The Goal
+## 3. The Goal
 
 We want to learn the Q-function:
 
@@ -41,19 +41,19 @@ Q(s, a) = \text{expected total future reward if we take action a in state s}
 
 Once we know Q(s, a) for all possible actions, we simply choose the action with the highest Q-value.
 
-In practice, we’ll train a neural network that takes in the game frame as input and predicts Q-values for all actions as output.
+In practice, we'll train a neural network that takes in the game frame as input and predicts Q-values for all actions as output.
 
 ⸻
 
-4. The Learning Rule
+## 4. The Learning Rule
 
 In standard Q-learning, we updated the table like this:
 
-Q(s, a) \leftarrow Q(s, a) + \alpha [r + \gamma \max_{a’} Q(s’, a’) - Q(s,a)]
+Q(s, a) \leftarrow Q(s, a) + \alpha [r + \gamma \max_{a'} Q(s', a') - Q(s,a)]
 
 In DQN, we keep the same idea, but instead of updating numbers in a table, we train a neural network so that its prediction Q_\theta(s,a) matches the target:
 
-\text{Target} = r + \gamma \max_{a’} Q_{\theta^-}(s’, a’)
+\text{Target} = r + \gamma \max_{a'} Q_{\theta^-}(s', a')
 
 Here:
 	•	Q_\theta is our main network,
@@ -65,12 +65,12 @@ We minimize the difference between the predicted Q-value and this target using m
 
 ⸻
 
-5. The Four Major Ideas That Make DQN Work
+## 5. The Four Major Ideas That Make DQN Work
 
-(1) Epsilon-Greedy Exploration
+### (1) Epsilon-Greedy Exploration
 
-At the start, the agent doesn’t know what to do.
-If it always takes the “best” action according to its (untrained) network, it won’t explore new possibilities.
+At the start, the agent doesn't know what to do.
+If it always takes the "best" action according to its (untrained) network, it won't explore new possibilities.
 
 To fix this, we use an epsilon-greedy policy:
 	•	With probability ε → take a random action (exploration)
@@ -92,7 +92,7 @@ def select_action(net, state, epsilon, n_actions):
 
 ⸻
 
-(2) Replay Buffer (Experience Replay)
+### (2) Replay Buffer (Experience Replay)
 
 When playing, consecutive frames are highly correlated.
 If we train directly on them, the network becomes unstable.
@@ -111,7 +111,7 @@ batch = random.sample(buffer, batch_size)
 
 ⸻
 
-(3) Target Network
+### (3) Target Network
 
 If we use the same network to calculate both the prediction and the target, both keep changing together, making training unstable.
 
@@ -125,9 +125,9 @@ def update_target(target_net, main_net):
 
 ⸻
 
-(4) Frame Stacking
+### (4) Frame Stacking
 
-A single Pong frame doesn’t tell us if the ball is moving up or down.
+A single Pong frame doesn't tell us if the ball is moving up or down.
 To understand motion, we stack the last 4 frames together.
 This gives the agent a sense of direction and speed.
 
@@ -135,7 +135,7 @@ So, the state becomes a tensor of shape [4, 84, 84] (four grayscale frames).
 
 ⸻
 
-6. The Neural Network Architecture
+## 6. The Neural Network Architecture
 
 Because our input is an image, we use a Convolutional Neural Network (CNN).
 This helps the agent understand visual patterns such as the ball and paddle.
@@ -178,7 +178,7 @@ class DQN(nn.Module):
 
 ⸻
 
-7. The Step-by-Step Algorithm
+## 7. The Step-by-Step Algorithm
 	1.	Initialize:
 	•	Main Q-network (θ)
 	•	Target network (θ⁻ = θ)
@@ -191,7 +191,7 @@ class DQN(nn.Module):
 	3.	Sample:
 	•	Randomly sample a batch from the buffer.
 	•	Compute target:
-y = r + \gamma \max_{a’} Q_{\theta^-}(s’, a’)
+y = r + \gamma \max_{a'} Q_{\theta^-}(s', a')
 	•	Compute loss:
 L = (y - Q_{\theta}(s, a))^2
 	•	Backpropagate to update the main network.
@@ -202,7 +202,7 @@ L = (y - Q_{\theta}(s, a))^2
 
 ⸻
 
-8. Intuitive Understanding
+## 8. Intuitive Understanding
 
 Initially, the paddle moves randomly.
 By chance, it sometimes hits the ball and gets a positive reward.
@@ -213,7 +213,7 @@ This process continues until the agent learns a consistent strategy to hit the b
 
 ⸻
 
-9. Key Points to Remember
+## 9. Key Points to Remember
 	•	DQN replaces the Q-table with a neural network that predicts Q-values.
 	•	Training is done by minimizing the difference between the predicted Q-value and the Bellman target.
 	•	The replay buffer and target network are essential for stability.
