@@ -33,9 +33,9 @@ class PolicyNetwork(nn.Module):
         """Select action and return log probability."""
         state_tensor = torch.FloatTensor(state).unsqueeze(0)
         probs = self.forward(state_tensor)
-        dist = Categorical(probs)
-        action = dist.sample()
-        return action.item(), dist.log_prob(action)
+        dist = Categorical(probs) # just like torch.multinomial
+        action = dist.sample() # <- Sampling
+        return action.item(), dist.log_prob(action) # <- Log probability
 
 
 class REINFORCE:
