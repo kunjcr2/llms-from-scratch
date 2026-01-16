@@ -868,6 +868,41 @@
                             </div>
                         </div>
                         <div class="concept" onclick="toggleConcept(this)">
+                            <h3><span>📏</span> KL Divergence</h3>
+                            <p>Measuring how different two probability distributions are</p>
+                            <div class="concept-details">
+                                <div class="formula">D_KL(P || Q) = Σ P(x) · log(P(x) / Q(x))</div>
+                                <ul>
+                                    <li><strong>Intuition:</strong> "How surprised would I be using Q when data comes
+                                        from P?"</li>
+                                    <li>KL = 0 means distributions are identical</li>
+                                    <li>Higher KL = more different distributions</li>
+                                    <li><strong>NOT symmetric:</strong> KL(P||Q) ≠ KL(Q||P)</li>
+                                    <li><strong>In RL:</strong> Measures how much policy has changed</li>
+                                    <li>TRPO/PPO use KL to prevent policy from changing too much</li>
+                                    <li>RLHF uses KL to keep LLM close to base model</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="concept" onclick="toggleConcept(this)">
+                            <h3><span>🛡️</span> TRPO (Trust Region Policy Optimization)</h3>
+                            <p>Stable policy updates via constrained optimization</p>
+                            <div class="concept-details">
+                                <div class="formula">max L(θ) subject to D_KL(π_old || π_new) ≤ δ</div>
+                                <ul>
+                                    <li><strong>Core Idea:</strong> New policy performance = old + sum of advantages
+                                    </li>
+                                    <li><strong>Problem:</strong> Don't know state distribution under new policy</li>
+                                    <li><strong>Solution:</strong> Surrogate objective using old policy's distribution
+                                    </li>
+                                    <li><strong>Trust Region:</strong> Bound KL divergence to prevent large updates</li>
+                                    <li>Guarantees monotonic improvement</li>
+                                    <li>Foundation for PPO and GRPO (DeepSeek)</li>
+                                    <li>Critical for LLM alignment - keeps policy close to base model</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="concept" onclick="toggleConcept(this)">
                             <h3><span>🚀</span> Modern Algorithms</h3>
                             <p>PPO, GRPO, RLHF - Training LLMs</p>
                             <div class="concept-details">
