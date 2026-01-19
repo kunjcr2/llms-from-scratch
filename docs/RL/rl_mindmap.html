@@ -903,15 +903,48 @@
                             </div>
                         </div>
                         <div class="concept" onclick="toggleConcept(this)">
-                            <h3><span>🚀</span> Modern Algorithms</h3>
-                            <p>PPO, GRPO, RLHF - Training LLMs</p>
+                            <h3><span>📎</span> PPO (Proximal Policy Optimization)</h3>
+                            <p>Simplified trust region via clipping</p>
+                            <div class="concept-details">
+                                <div class="formula">L = min(r·A, clip(r, 1-ε, 1+ε)·A)</div>
+                                <ul>
+                                    <li><strong>Ratio:</strong> r = π_new(a|s) / π_old(a|s)</li>
+                                    <li><strong>Clip:</strong> Prevents ratio from going beyond [1-ε, 1+ε]</li>
+                                    <li><strong>Intuition:</strong> Good actions (A>0) can't grow too greedy</li>
+                                    <li>Simpler than TRPO - no conjugate gradient needed</li>
+                                    <li>Used in ChatGPT, Claude, and most RLHF systems</li>
+                                    <li>ε typically 0.1 or 0.2</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="concept" onclick="toggleConcept(this)">
+                            <h3><span>🎯</span> GRPO (Group Relative Policy Optimization)</h3>
+                            <p>DeepSeek's critic-free policy optimization</p>
+                            <div class="concept-details">
+                                <div class="formula">A_i = (r_i - mean(r)) / std(r)</div>
+                                <ul>
+                                    <li><strong>Key Innovation:</strong> No value function/critic needed!</li>
+                                    <li><strong>Process:</strong> Generate G responses per prompt</li>
+                                    <li>Compute rewards for each response</li>
+                                    <li>Normalize rewards within group → advantage</li>
+                                    <li><strong>KL penalty:</strong> Keeps policy close to base model</li>
+                                    <li>Perfect for sparse rewards (math/code verification)</li>
+                                    <li>Used in DeepSeek-R1 for reasoning</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="concept" onclick="toggleConcept(this)">
+                            <h3><span>👤</span> RLHF (RL from Human Feedback)</h3>
+                            <p>Training LLMs with human preferences</p>
                             <div class="concept-details">
                                 <ul>
-                                    <li><strong>PPO:</strong> Proximal Policy Optimization - clips gradient updates</li>
-                                    <li><strong>TRPO:</strong> Trust Region - constrains policy change</li>
-                                    <li><strong>GRPO:</strong> Group Relative - used by DeepSeek</li>
-                                    <li><strong>RLHF:</strong> Human feedback as reward signal</li>
-                                    <li>All build on REINFORCE + Advantage + GAE</li>
+                                    <li><strong>Step 1:</strong> Supervised Fine-Tuning (SFT) on demonstrations</li>
+                                    <li><strong>Step 2:</strong> Train reward model on preference pairs</li>
+                                    <li><strong>Step 3:</strong> Optimize policy with PPO using reward model</li>
+                                    <li><strong>KL constraint:</strong> Prevent model from deviating too far</li>
+                                    <li>Reward = RM(response) - β·KL(policy||reference)</li>
+                                    <li>Powers ChatGPT, Claude, and aligned LLMs</li>
+                                    <li>Alternative: DPO (Direct Preference Optimization) skips RM</li>
                                 </ul>
                             </div>
                         </div>
