@@ -123,12 +123,3 @@ $$
 - Set seeds, log hyperparams, keep versions: `transformers`, `torch`, `datasets`
 - Save: tokenizer, encoder config, head weights
 
----
-
-## 10) Minimal, From-Scratch Code (PyTorch + HF)
-
-> **What you get:** a tiny Reward Model trained with pairwise loss end-to-end; plus quick eval and a scoring function you can reuse in PPO.
-
-```python
-# In RewardModel.py
-```

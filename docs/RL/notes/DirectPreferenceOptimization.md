@@ -116,29 +116,7 @@ This is exactly what teacher-forcing cross-entropy does—except here it’s app
 
 ---
 
-## 6) Minimal PyTorch-style sketch
-
-```python
-# logps_plus, logps_minus: [B] sequence log-probs from the *policy*
-# logps_plus_ref, logps_minus_ref: [B] from the *reference* (no grad)
-with torch.no_grad():
-    ref_gap = logps_plus_ref - logps_minus_ref          # [B]
-
-policy_gap = logps_plus - logps_minus                    # [B]
-z = beta * (policy_gap - ref_gap)                        # [B]
-
-# Stable: -log(sigmoid(z)) == softplus(-z)
-loss = F.softplus(-z).mean()
-
-# ---- Gradients ----
-optimizer.zero_grad()
-loss.backward()          # populates grads in policy params θ
-optimizer.step()         # applies the update
-```
-
----
-
-## 7) TL;DR
+## 6) TL;DR
 
 DPO minimizes
 
