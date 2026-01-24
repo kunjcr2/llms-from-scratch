@@ -906,14 +906,15 @@
                             <h3><span>📎</span> PPO (Proximal Policy Optimization)</h3>
                             <p>Simplified trust region via clipping</p>
                             <div class="concept-details">
-                                <div class="formula">L = min(r·A, clip(r, 1-ε, 1+ε)·A)</div>
+                                <div class="formula">L = L_CLIP - c₁·L_VF + c₂·S[π]</div>
                                 <ul>
                                     <li><strong>Ratio:</strong> r = π_new(a|s) / π_old(a|s)</li>
-                                    <li><strong>Clip:</strong> Prevents ratio from going beyond [1-ε, 1+ε]</li>
-                                    <li><strong>Intuition:</strong> Good actions (A>0) can't grow too greedy</li>
+                                    <li><strong>L_CLIP:</strong> min(r·A, clip(r, 1-ε, 1+ε)·A)</li>
+                                    <li><strong>L_VF:</strong> Value function loss for advantage estimation</li>
+                                    <li><strong>S[π]:</strong> Entropy bonus for exploration</li>
+                                    <li><strong>Intuition:</strong> Clip prevents over-optimization</li>
                                     <li>Simpler than TRPO - no conjugate gradient needed</li>
                                     <li>Used in ChatGPT, Claude, and most RLHF systems</li>
-                                    <li>ε typically 0.1 or 0.2</li>
                                 </ul>
                             </div>
                         </div>
@@ -921,14 +922,16 @@
                             <h3><span>🎯</span> GRPO (Group Relative Policy Optimization)</h3>
                             <p>DeepSeek's critic-free policy optimization</p>
                             <div class="concept-details">
-                                <div class="formula">A_i = (r_i - mean(r)) / std(r)</div>
+                                <div class="formula">L = L_PPO - β·D_KL(π_θ || π_ref)</div>
                                 <ul>
                                     <li><strong>Key Innovation:</strong> No value function/critic needed!</li>
-                                    <li><strong>Process:</strong> Generate G responses per prompt</li>
-                                    <li>Compute rewards for each response</li>
-                                    <li>Normalize rewards within group → advantage</li>
-                                    <li><strong>KL penalty:</strong> Keeps policy close to base model</li>
-                                    <li>Perfect for sparse rewards (math/code verification)</li>
+                                    <li><strong>LLM States:</strong> Prompt + generated tokens so far</li>
+                                    <li><strong>LLM Actions:</strong> Next token from vocabulary</li>
+                                    <li><strong>Sparse Rewards:</strong> Only at end of response</li>
+                                    <li><strong>Group Advantage:</strong> A_i = (r_i - mean(r)) / std(r)</li>
+                                    <li>Generate G responses, normalize rewards within group</li>
+                                    <li><strong>KL penalty:</strong> Prevents drift from base model</li>
+                                    <li>Perfect for verifiable rewards (math/code)</li>
                                     <li>Used in DeepSeek-R1 for reasoning</li>
                                 </ul>
                             </div>
@@ -945,6 +948,25 @@
                                     <li>Reward = RM(response) - β·KL(policy||reference)</li>
                                     <li>Powers ChatGPT, Claude, and aligned LLMs</li>
                                     <li>Alternative: DPO (Direct Preference Optimization) skips RM</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="concept" onclick="toggleConcept(this)">
+                            <h3><span>🎯</span> DPO (Direct Preference Optimization)</h3>
+                            <p>Skip the reward model, train directly on preferences</p>
+                            <div class="concept-details">
+                                <div class="formula">L = -log σ(β[log π_θ(y⁺|x) - log π_θ(y⁻|x) - (reference gap)])
+                                </div>
+                                <ul>
+                                    <li><strong>Key insight:</strong> Treat preferences as logistic regression</li>
+                                    <li><strong>Policy gap:</strong> Difference in log-probs for preferred vs rejected
+                                    </li>
+                                    <li><strong>Reference gap:</strong> Same difference under frozen base model</li>
+                                    <li><strong>Gradient effect:</strong> Increase probability of y⁺, decrease y⁻</li>
+                                    <li><strong>Scaling factor:</strong> β·(1-σ(z)) — strongest when model is unsure
+                                    </li>
+                                    <li>No reward model needed — simpler pipeline than RLHF</li>
+                                    <li>Used by Llama, Zephyr, and many modern aligned models</li>
                                 </ul>
                             </div>
                         </div>
