@@ -1,4 +1,7 @@
 __pycache__/
+*.py[cod]
+.DS_Store
+.ipynb_checkpoints/
 .vscode/
 .antigravity/
 venv/
