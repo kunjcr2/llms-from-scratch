@@ -4,7 +4,7 @@ This is an adversarial-neural-cryptography experiment based on the Aliceâ€“Bobâ€
 
 The purpose is to test **attacker-architecture overfitting**: does a learned cipher only fool the CNN it trained against?
 
-## Pilot results
+## Preliminary, unmatched-capacity pilot results
 
 Held-out Eve bit accuracy (50% is random guessing):
 
@@ -17,7 +17,7 @@ Held-out Eve bit accuracy (50% is random guessing):
 
 The BiLSTM substantially recovers the plaintext at both lengths, so these CNN-trained systems are **not generally secure**. The Transformer result means only that this particular Transformer configuration did not learn an attack in that run; it is not evidence of security.
 
-## 32-bit five-seed sweep
+## 32-bit five-seed sweep (pre-matching baseline)
 
 Alice and Bob were trained against a CNN Eve for 50,000 adversarial steps for each seed (7-11). Each frozen Alice/Bob pair was then attacked by fresh CNN, MLP, BiLSTM, and Transformer Eves trained for 20,000 steps. Every metric below is measured on newly generated held-out plaintext/ciphertext pairs.
 
@@ -31,7 +31,9 @@ Alice and Bob were trained against a CNN Eve for 50,000 adversarial steps for ea
 
 Random guessing is 50% bit accuracy and 16 wrong bits per 32-bit message. Bob learned reliable communication, but the frozen learned systems were repeatedly broken by fresh non-CNN attackers. The Transformer had the strongest average attack, while its large standard deviation shows that the learned code and attack success are strongly seed-dependent.
 
-This is evidence of **attacker-architecture overfitting**: training Alice and Bob against one CNN Eve does not create robust secrecy against other learned attackers. It is a pilot result; a formal comparison should capacity-match and tune all attacker families, then report confidence intervals over more seeds.
+This is evidence of **attacker-architecture overfitting**: training Alice and Bob against one CNN Eve does not create robust secrecy against other learned attackers. These initial numbers used unmatched attacker capacities, so they are a pre-matching baseline rather than the final comparison.
+
+The current notebook now uses a capacity-matched post-hoc suite: CNN (23,073 parameters), MLP (24,864), BiLSTM (19,441), and Transformer (18,209). It keeps the same attack data, optimizer, and step budget for all four attackers. Rerun the five-seed sweep before treating cross-architecture differences as final.
 
 Run the notebook after changes with:
 

@@ -393,6 +393,27 @@ code(r'''
 # a formal study should tune and capacity-match every family across multiple seeds.
 CROSS_ARCH_EVE_STEPS = 20_000
 
+def parameter_count(model):
+    """Trainable parameter count used to verify a fairer cross-architecture comparison."""
+    return sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
+
+class CapacityMatchedCNNEve(nn.Module):
+    """A wider Conv1D Eve with approximately the same capacity as the other attackers."""
+    def __init__(self):
+        super().__init__()
+        # 32 ciphertext values -> 192 mixed values -> 96 -> 32 -> 32 output values.
+        self.mix = nn.Linear(CIPHER_BITS, 192)
+        self.conv1 = nn.Conv1d(1, 32, kernel_size=4, padding="same")
+        self.conv2 = nn.Conv1d(32, 64, kernel_size=2, stride=2)
+        self.conv3 = nn.Conv1d(64, 64, kernel_size=3, stride=3)
+        self.conv4 = nn.Conv1d(64, 1, kernel_size=1)
+    def forward(self, ciphertext):
+        x = self.mix(ciphertext).unsqueeze(1)
+        x = torch.sigmoid(self.conv1(x))
+        x = torch.sigmoid(self.conv2(x))
+        x = torch.sigmoid(self.conv3(x))
+        return torch.tanh(self.conv4(x).squeeze(1))
+
 class MLPEve(nn.Module):
     """A general fixed-vector attacker: no convolutional locality assumption."""
     def __init__(self):
@@ -409,9 +430,10 @@ class BiLSTMEve(nn.Module):
     """A bidirectional sequential attacker: each guessed bit sees the whole ciphertext."""
     def __init__(self):
         super().__init__()
-        self.lstm = nn.LSTM(input_size=1, hidden_size=48, num_layers=2,
+        # Two 24-unit bidirectional layers give roughly 19k trainable parameters.
+        self.lstm = nn.LSTM(input_size=1, hidden_size=24, num_layers=2,
                             batch_first=True, bidirectional=True)
-        self.readout = nn.Linear(96, 1)
+        self.readout = nn.Linear(48, 1)
     def forward(self, ciphertext):
         sequence, _ = self.lstm(ciphertext.unsqueeze(-1))  # [B, 16] -> [B, 16, 1]
         return torch.tanh(self.readout(sequence).squeeze(-1))
@@ -420,11 +442,12 @@ class TransformerEve(nn.Module):
     """A self-attention attacker that can directly compare every ciphertext position."""
     def __init__(self):
         super().__init__()
-        width = 64
+        # Two 32-wide layers give roughly 18k trainable parameters.
+        width = 32
         self.input_projection = nn.Linear(1, width)
         self.position = nn.Parameter(torch.zeros(1, CIPHER_BITS, width))
         layer = nn.TransformerEncoderLayer(d_model=width, nhead=4,
-                                           dim_feedforward=128, dropout=0.0,
+                                           dim_feedforward=64, dropout=0.0,
                                            batch_first=True, activation="gelu")
         self.encoder = nn.TransformerEncoder(layer, num_layers=2)
         self.readout = nn.Linear(width, 1)
@@ -434,11 +457,16 @@ class TransformerEve(nn.Module):
 
 
 attackers = {
-    "CNN (fresh)": MixAndTransform(CIPHER_BITS),
+    "CNN": CapacityMatchedCNNEve(),
     "MLP": MLPEve(),
     "BiLSTM": BiLSTMEve(),
     "Transformer": TransformerEve(),
 }
+print("Capacity-matched attacker parameter counts:")
+for name, attacker in attackers.items():
+    print(f"  {name:<11} {parameter_count(attacker):,} parameters")
+counts = [parameter_count(attacker) for attacker in attackers.values()]
+assert max(counts) / min(counts) < 1.5, "Attacker capacities are not sufficiently matched."
 cross_arch_metrics = {}
 
 for name, attacker in attackers.items():
@@ -589,7 +617,7 @@ def train_and_attack_one_seed(seed):
     run_bob_metrics = evaluate_decoder(run_bob, held_ciphertext, held_message, held_key)
 
     run_attackers = {
-        "CNN (fresh)": MixAndTransform(CIPHER_BITS),
+        "CNN": CapacityMatchedCNNEve(),
         "MLP": MLPEve(),
         "BiLSTM": BiLSTMEve(),
         "Transformer": TransformerEve(),
@@ -598,15 +626,21 @@ def train_and_attack_one_seed(seed):
     for name, attacker in run_attackers.items():
         attacker = attacker.to(device)
         attack_optimizer = torch.optim.Adam(attacker.parameters(), lr=LR_EVE)
-        for _ in range(CROSS_ARCH_EVE_STEPS):
+        print(f"Seed {seed} | starting {name} attack training ({CROSS_ARCH_EVE_STEPS:,} steps)")
+        for attack_step in range(1, CROSS_ARCH_EVE_STEPS + 1):
             attack_message, attack_key = random_batch(BATCH_SIZE)
             with torch.no_grad():
                 attack_ciphertext = run_alice(torch.cat([attack_message, attack_key], dim=1))
             attack_optimizer.zero_grad(set_to_none=True)
-            attack_loss = reconstruction_error(attacker(attack_ciphertext), attack_message)
+            attack_output = attacker(attack_ciphertext)
+            attack_loss = reconstruction_error(attack_output, attack_message)
             finite(attack_loss)
             attack_loss.backward()
             attack_optimizer.step()
+            if attack_step % 5_000 == 0 or attack_step == 1:
+                print(f"Seed {seed} | {name:>13} | {attack_step:>6,}/{CROSS_ARCH_EVE_STEPS:,} | "
+                      f"error {attack_loss.item():5.2f}/32 | "
+                      f"accuracy {bit_accuracy(attack_output, attack_message).item():.2%}")
         attacker.eval()
         run_attack_metrics[name] = evaluate_decoder(attacker, held_ciphertext, held_message)
         print(f"Seed {seed} | {name:>13}: held-out bit accuracy {run_attack_metrics[name]['bit_accuracy']:.2%}")
@@ -627,7 +661,7 @@ for seed in OVERNIGHT_EXTRA_SEEDS:
                            for name, metrics in seed_attack_metrics.items())
 
 seeds = [row["seed"] for row in all_bob_rows]
-attacker_names = ["CNN (fresh)", "MLP", "BiLSTM", "Transformer"]
+attacker_names = ["CNN", "MLP", "BiLSTM", "Transformer"]
 summary_rows = []
 for name in attacker_names:
     rows = [row for row in all_attack_rows if row["attacker"] == name]
