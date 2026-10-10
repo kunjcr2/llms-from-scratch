@@ -79,15 +79,15 @@ print(f"Using device: {device}")
 
 md('## 4. Configuration')
 code(r'''
-MESSAGE_BITS = 16
-KEY_BITS = 16
-CIPHER_BITS = 16
+MESSAGE_BITS = 32
+KEY_BITS = 32
+CIPHER_BITS = 32
 
 # These match the scale of the original paper rather than the earlier MLP demo.
 # A T4/L4/A100 handles this small Conv1D model comfortably.  Lower BATCH_SIZE to
 # 1024 if Colab reports an out-of-memory error.
 BATCH_SIZE = 4096
-TRAIN_STEPS = 20_000
+TRAIN_STEPS = 50_000
 EVE_UPDATES = 2           # Paper: one Alice/Bob update, then two Eve updates.
 POSTHOC_EVE_RESTARTS = 3  # The paper uses several independently reset attackers.
 FRESH_EVE_STEPS = 20_000
@@ -516,6 +516,165 @@ md(r'''
 ## 17. Limitations
 
 This experiment is intentionally small. Its continuous ciphertext, finite network capacity, and limited attacker training do **not** provide formal secrecy. A more powerful, better-tuned, or differently structured Eve can often learn an attack; the post-hoc Eve is specifically included to reveal that risk. Results vary with seeds and hyperparameters. Do not use this system to protect real data—use reviewed, standard cryptographic primitives such as AES with authenticated encryption instead.
+''')
+
+md('## 18. Overnight 32-bit, five-seed cross-architecture sweep')
+code(r'''
+# Seed 7 is the run already completed by this notebook. This cell runs four more
+# independent 32-bit CNN-trained Alice/Bob systems, then prints and displays all
+# five-run results directly in the notebook output.
+
+assert MESSAGE_BITS == KEY_BITS == CIPHER_BITS == 32, "The overnight sweep is configured for 32-bit messages."
+OVERNIGHT_EXTRA_SEEDS = [8, 9, 10, 11]
+
+def set_experiment_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+def train_and_attack_one_seed(seed):
+    """Train against a CNN Eve, freeze Alice/Bob, then train each fresh attacker."""
+    set_experiment_seed(seed)
+    run_alice = MixAndTransform(MESSAGE_BITS + KEY_BITS).to(device)
+    run_bob = MixAndTransform(CIPHER_BITS + KEY_BITS).to(device)
+    run_eve = MixAndTransform(CIPHER_BITS).to(device)
+    run_opt_ab = torch.optim.Adam(list(run_alice.parameters()) + list(run_bob.parameters()), lr=LR_ALICE_BOB)
+    run_opt_eve = torch.optim.Adam(run_eve.parameters(), lr=LR_EVE)
+
+    print(f"\n{'=' * 18} Seed {seed}: CNN adversarial training {'=' * 18}")
+    for step in range(1, TRAIN_STEPS + 1):
+        # Eve-only updates: detached ciphertext keeps Alice fixed during these updates.
+        for _ in range(EVE_UPDATES):
+            message, key = random_batch(BATCH_SIZE)
+            with torch.no_grad():
+                ciphertext = run_alice(torch.cat([message, key], dim=1))
+            run_opt_eve.zero_grad(set_to_none=True)
+            eve_loss = reconstruction_error(run_eve(ciphertext.detach()), message)
+            finite(eve_loss)
+            eve_loss.backward()
+            run_opt_eve.step()
+
+        # Alice/Bob update: Eve's weights are frozen while its gradient still reaches Alice.
+        message, key = random_batch(BATCH_SIZE)
+        ciphertext = run_alice(torch.cat([message, key], dim=1))
+        bob_output = run_bob(torch.cat([ciphertext, key], dim=1))
+        for parameter in run_eve.parameters():
+            parameter.requires_grad_(False)
+        eve_output = run_eve(ciphertext)
+        bob_loss = reconstruction_error(bob_output, message)
+        eve_loss_for_ab = reconstruction_error(eve_output, message)
+        ab_loss = bob_loss + (RANDOM_ERROR - eve_loss_for_ab).pow(2) / RANDOM_ERROR**2
+        finite(bob_loss, eve_loss_for_ab, ab_loss)
+        run_opt_ab.zero_grad(set_to_none=True)
+        ab_loss.backward()
+        run_opt_ab.step()
+        for parameter in run_eve.parameters():
+            parameter.requires_grad_(True)
+
+        if step % 5_000 == 0 or step == 1:
+            print(f"Seed {seed} | {step:>6,}/{TRAIN_STEPS:,} | Bob {bit_accuracy(bob_output, message).item():.2%} | "
+                  f"CNN Eve {bit_accuracy(eve_output, message).item():.2%}")
+
+    # Freeze Alice and Bob and evaluate every attacker on exactly the same held-out set.
+    run_alice.eval()
+    run_bob.eval()
+    for model in (run_alice, run_bob):
+        for parameter in model.parameters():
+            parameter.requires_grad_(False)
+    held_message, held_key = random_batch(EVAL_SIZE)
+    with torch.no_grad():
+        held_ciphertext = run_alice(torch.cat([held_message, held_key], dim=1))
+    run_bob_metrics = evaluate_decoder(run_bob, held_ciphertext, held_message, held_key)
+
+    run_attackers = {
+        "CNN (fresh)": MixAndTransform(CIPHER_BITS),
+        "MLP": MLPEve(),
+        "BiLSTM": BiLSTMEve(),
+        "Transformer": TransformerEve(),
+    }
+    run_attack_metrics = {}
+    for name, attacker in run_attackers.items():
+        attacker = attacker.to(device)
+        attack_optimizer = torch.optim.Adam(attacker.parameters(), lr=LR_EVE)
+        for _ in range(CROSS_ARCH_EVE_STEPS):
+            attack_message, attack_key = random_batch(BATCH_SIZE)
+            with torch.no_grad():
+                attack_ciphertext = run_alice(torch.cat([attack_message, attack_key], dim=1))
+            attack_optimizer.zero_grad(set_to_none=True)
+            attack_loss = reconstruction_error(attacker(attack_ciphertext), attack_message)
+            finite(attack_loss)
+            attack_loss.backward()
+            attack_optimizer.step()
+        attacker.eval()
+        run_attack_metrics[name] = evaluate_decoder(attacker, held_ciphertext, held_message)
+        print(f"Seed {seed} | {name:>13}: held-out bit accuracy {run_attack_metrics[name]['bit_accuracy']:.2%}")
+        del attacker, attack_optimizer
+
+    del run_alice, run_bob, run_eve, run_opt_ab, run_opt_eve, run_attackers
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    return run_bob_metrics, run_attack_metrics
+
+# Include the current notebook's Seed 7 result, then run Seeds 8-11.
+all_bob_rows = [{"seed": SEED, **bob_metrics}]
+all_attack_rows = [{"seed": SEED, "attacker": name, **metrics} for name, metrics in cross_arch_metrics.items()]
+for seed in OVERNIGHT_EXTRA_SEEDS:
+    seed_bob_metrics, seed_attack_metrics = train_and_attack_one_seed(seed)
+    all_bob_rows.append({"seed": seed, **seed_bob_metrics})
+    all_attack_rows.extend({"seed": seed, "attacker": name, **metrics}
+                           for name, metrics in seed_attack_metrics.items())
+
+seeds = [row["seed"] for row in all_bob_rows]
+attacker_names = ["CNN (fresh)", "MLP", "BiLSTM", "Transformer"]
+summary_rows = []
+for name in attacker_names:
+    rows = [row for row in all_attack_rows if row["attacker"] == name]
+    accuracies = np.array([row["bit_accuracy"] for row in rows])
+    hamming = np.array([row["hamming_error"] for row in rows])
+    summary_rows.append({"attacker": name, "mean_bit_accuracy": float(accuracies.mean()),
+                         "std_bit_accuracy": float(accuracies.std(ddof=1)),
+                         "mean_hamming_error": float(hamming.mean()),
+                         "std_hamming_error": float(hamming.std(ddof=1))})
+mean_bob_accuracy = np.mean([row["bit_accuracy"] for row in all_bob_rows])
+std_bob_accuracy = np.std([row["bit_accuracy"] for row in all_bob_rows], ddof=1)
+print("\n" + "=" * 73)
+print("32-bit cross-architecture results across five seeds")
+print(f"{'Attacker':<16} {'Mean accuracy':>15} {'Std. dev.':>12} {'Mean Hamming':>15}")
+for row in summary_rows:
+    print(f"{row['attacker']:<16} {row['mean_bit_accuracy']:>14.2%} {row['std_bit_accuracy']:>11.2%} "
+          f"{row['mean_hamming_error']:>14.2f}/32")
+print(f"Bob              {mean_bob_accuracy:>14.2%} {std_bob_accuracy:>11.2%} (communication baseline)")
+
+# Graph 1 shows whether an attack is stable or dependent on a lucky random seed.
+fig, ax = plt.subplots(figsize=(9, 4.8))
+for name in attacker_names:
+    rows = sorted((row for row in all_attack_rows if row["attacker"] == name), key=lambda row: row["seed"])
+    ax.plot(seeds, [row["bit_accuracy"] for row in rows], marker="o", linewidth=2, label=name)
+ax.axhline(.5, color="gray", ls="--", lw=1, label="random guessing")
+ax.set(xlabel="random seed", ylabel="held-out Eve bit accuracy", ylim=(0, 1.02),
+       title="32-bit cross-architecture attacks across seeds")
+ax.grid(alpha=.25)
+ax.legend(ncol=2)
+fig.tight_layout()
+plt.show()
+
+# Graph 2 is the presentation-ready aggregate: mean and one-standard-deviation bars.
+labels = [row["attacker"] for row in summary_rows] + ["Bob"]
+means = [row["mean_bit_accuracy"] for row in summary_rows] + [mean_bob_accuracy]
+errors = [row["std_bit_accuracy"] for row in summary_rows] + [std_bob_accuracy]
+fig, ax = plt.subplots(figsize=(9, 4.8))
+bars = ax.bar(labels, means, yerr=errors, capsize=5,
+              color=["tab:orange", "tab:blue", "tab:purple", "tab:brown", "tab:green"])
+ax.axhline(.5, color="gray", ls="--", lw=1, label="random guessing")
+ax.set(ylabel="held-out bit accuracy (mean ± 1 std)", ylim=(0, 1.08),
+       title="Five-seed summary: frozen 32-bit Alice/Bob")
+ax.legend()
+for bar, mean in zip(bars, means):
+    ax.text(bar.get_x() + bar.get_width() / 2, mean + .025, f"{mean:.1%}", ha="center")
+fig.tight_layout()
+plt.show()
 ''')
 
 with open("adversarial_neural_cryptography_demo.ipynb", "w", encoding="utf-8") as f:
