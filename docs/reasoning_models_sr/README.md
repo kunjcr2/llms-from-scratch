@@ -1,6 +1,6 @@
 # Build a Reasoning Model From Scratch — Lecture Notes
 
-Concise, implementation-oriented notes for Sebastian Raschka's six-video series. The notes follow the lectures' order and preserve the instructor's progression: establish a base model, build a verifier, improve inference, and finally train with reinforcement learning.
+Concise, implementation-oriented notes for Sebastian Raschka's seven-video series. The notes follow the lectures' order and preserve the instructor's progression: establish a base model, build a verifier, improve inference, train with reinforcement learning, and then diagnose and stabilize GRPO.
 
 ## Course map
 
@@ -12,6 +12,7 @@ Concise, implementation-oriented notes for Sebastian Raschka's six-video series.
 | [4](04_inference_scaling_sampling_and_self_consistency.md) | Inference scaling I | Implement temperature, top-p sampling, chain-of-thought prompting, and self-consistency. |
 | [5](05_logprob_scoring_and_self_refinement.md) | Inference scaling II | Score answers with heuristics/log-probabilities and implement iterative self-refinement. |
 | [6](06_rlvr_and_grpo.md) | Reinforcement learning I | Implement RL with verifiable rewards using a readable GRPO training loop. |
+| [7](07_grpo_metrics_stability_and_format_rewards.md) | Reinforcement learning II | Interpret GRPO metrics, stabilize updates, and experiment with KL and format rewards. |
 
 ## The complete pipeline
 
@@ -28,6 +29,7 @@ pretrained Qwen3-0.6B base model
         │
         └── training-time improvement
               └── RLVR with GRPO
+                    └── metrics, clipping, KL, and format rewards
 ```
 
 The important distinction is whether a method changes model weights:
@@ -61,4 +63,5 @@ The series' recurring lesson is that more compute is not automatically better. M
 - [Lecture 4](https://www.youtube.com/watch?v=t5y-kS9nNxU)
 - [Lecture 5](https://www.youtube.com/watch?v=TVMyOJ_3Gxo)
 - [Lecture 6](https://www.youtube.com/watch?v=237Hf7Q3lgg)
+- Lecture 7 (transcript supplied locally)
 
