@@ -35,6 +35,21 @@ This is evidence of **attacker-architecture overfitting**: training Alice and Bo
 
 The current notebook now uses a capacity-matched post-hoc suite: CNN (23,073 parameters), MLP (24,864), BiLSTM (19,441), and Transformer (18,209). It keeps the same attack data, optimizer, and step budget for all four attackers. Rerun the five-seed sweep before treating cross-architecture differences as final.
 
+## Current work: full 4x4 Eve-architecture sweep
+
+The new [`adversarial_neural_cryptography_4x4_sweep.ipynb`](adversarial_neural_cryptography_4x4_sweep.ipynb) is a standalone Google Colab experiment. It uses the same larger 19,409-parameter CNN for Alice and Bob, and varies Eve in both roles:
+
+| Role | Architectures |
+| --- | --- |
+| Eve used while training Alice/Bob | CNN, MLP, BiLSTM, Transformer |
+| Fresh post-hoc attacker | CNN, MLP, BiLSTM, Transformer |
+
+This produces a 4x4 matrix: each row is the Eve architecture Alice/Bob learned against, and each column is the architecture of a new attacker trained against that frozen pair. The main question is whether a learned communication scheme that withstands one Eve family is still vulnerable to a different family.
+
+The Eve architectures range from roughly 18k to 25k parameters, so they are in the same capacity range as Alice and Bob. The notebook is optimized for a Colab T4 or L4 GPU with mixed precision and fixed-shape CUDA optimizations. It uses one seed per run (`42` or `7`), 20,000 adversarial-training steps per training-Eve row, and 8,000 steps per attacker cell. Alice/Bob receive two in-game Eve updates per step and an elevated privacy-loss weight to make hiding the plaintext a first-class optimization goal. It prints progress, the held-out result tables, and two graphs inline; it does not save checkpoints, plots, CSVs, or other result files.
+
+In Colab, choose a T4/L4 GPU, set `SEED` in the first code cell, then run its two code cells in order. If a T4 runs out of memory, lower `BATCH_SIZE` from `8192` to `4096`.
+
 Run the notebook after changes with:
 
 ```powershell
