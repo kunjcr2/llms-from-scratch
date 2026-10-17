@@ -57,3 +57,13 @@ python build_adversarial_neural_cryptography_notebook.py
 ```
 
 This is a research evaluation, not production encryption and not a replacement for AES or TLS. The setup is inspired by [Abadi and Andersen (2016)](https://arxiv.org/abs/1610.06918).
+
+## ResNet-18 Alice/Bob transfer-learning experiment
+
+[`scripts/resnet_alice_bob_experiment.ipynb`](scripts/resnet_alice_bob_experiment.ipynb) is a self-contained Google Colab notebook testing the professor's pretrained-model suggestion. Open the notebook in Colab, select a GPU runtime, and run its cells in order. No companion Python file is required.
+
+The notebook uses the genuine `torchvision` ResNet-18 initialized from official ImageNet pretrained weights; it does not train a new ResNet from scratch. For 64-bit cryptography, Alice receives a 64-bit message plus a 64-bit key, while Bob receives a 64-value ciphertext plus the 64-bit key. These 128-value inputs become 8x16 three-channel images resized to ResNet's standard 224x224 input. The pretrained stem through `layer3` remains frozen, and only `layer4` plus the new 64-value output head are fine-tuned. Alice and Bob train against a CNN Eve, then the frozen pair is attacked independently by fresh CNN, MLP, BiLSTM, Transformer, and Extreme Learning Machine (ELM) attackers.
+
+Nothing is written to Colab's temporary filesystem. Training progress is printed both readably and as `LOG_JSON` records. Each held-out result is printed as `RESULT_JSON`, followed by a complete results table, a one-row attack matrix, and a heatmap. Saving the executed Colab notebook preserves all of these outputs.
+
+An A100 is recommended for the fastest run, although an L4 is fully supported. The notebook detects the accelerator and selects batch size 256 on A100, 128 on L4, and 64 on other CUDA GPUs. A100 and L4 runs use BF16 mixed precision, TF32 matrix operations, and channels-last ResNet tensors. Held-out evaluation is chunked by the selected batch size to avoid GPU-memory spikes.
