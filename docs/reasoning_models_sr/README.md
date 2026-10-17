@@ -1,6 +1,6 @@
 # Build a Reasoning Model From Scratch — Lecture Notes
 
-Concise, implementation-oriented notes for Sebastian Raschka's seven-video series. The notes follow the lectures' order and preserve the instructor's progression: establish a base model, build a verifier, improve inference, train with reinforcement learning, and then diagnose and stabilize GRPO.
+Concise, implementation-oriented notes for Sebastian Raschka's eight-video series. The notes follow the lectures' order and preserve the instructor's progression: establish a base model, build a verifier, improve inference, train with reinforcement learning, diagnose and stabilize GRPO, and distill a reasoning model.
 
 ## Course map
 
@@ -13,6 +13,7 @@ Concise, implementation-oriented notes for Sebastian Raschka's seven-video serie
 | [5](05_logprob_scoring_and_self_refinement.md) | Inference scaling II | Score answers with heuristics/log-probabilities and implement iterative self-refinement. |
 | [6](06_rlvr_and_grpo.md) | Reinforcement learning I | Implement RL with verifiable rewards using a readable GRPO training loop. |
 | [7](07_grpo_metrics_stability_and_format_rewards.md) | Reinforcement learning II | Interpret GRPO metrics, stabilize updates, and experiment with KL and format rewards. |
+| [8](08_reasoning_distillation.md) | Reasoning distillation | Train Qwen3-0.6B to imitate a larger teacher using completion-only cross-entropy. |
 
 ## The complete pipeline
 
@@ -64,4 +65,5 @@ The series' recurring lesson is that more compute is not automatically better. M
 - [Lecture 5](https://www.youtube.com/watch?v=TVMyOJ_3Gxo)
 - [Lecture 6](https://www.youtube.com/watch?v=237Hf7Q3lgg)
 - Lecture 7 (transcript supplied locally)
+- Lecture 8 (transcript supplied locally)
 

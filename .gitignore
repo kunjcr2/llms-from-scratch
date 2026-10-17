@@ -5,3 +5,5 @@ __pycache__/
 .vscode/
 .antigravity/
 venv/
+
+SUBMIT.md
