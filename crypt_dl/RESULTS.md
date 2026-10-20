@@ -99,6 +99,30 @@ Most cells are close to chance, but the MLP reaches 63.35% against the pair trai
 
 Several fresh attackers remained clearly above chance in both runs. Longer Alice/Bob training reduced the CNN, MLP, and Transformer attack scores in these recorded runs, but did not remove the vulnerability. This is a preliminary comparison only: it does not show that larger attackers are consistently stronger, or that longer training alone caused the change.
 
+## 5. Fresh attacker size sweep against one frozen 32-bit Alice/Bob pair
+
+### Setup
+
+- Seed: 7. One Alice/Bob pair was trained against a CNN Eve, then frozen for all attacks.
+- Alice, Bob, and training Eve: 40,609 CNN parameters each; Bob's held-out bit accuracy is shown as 100.0% in the figure.
+- Fresh attacker families: CNN, MLP, BiLSTM, Transformer. Each family was tested at target sizes of 5k, 10k, 20k, 40k, and 80k parameters.
+- Each fresh attacker was trained for 5,000 steps and evaluated on the same 16,384 held-out messages. Chance bit accuracy is 50%.
+- Accuracies below are transcribed from the figure and rounded to one decimal place; parameter counts are the actual model sizes printed on the figure.
+
+| Target size | CNN | MLP | BiLSTM | Transformer |
+| --- | ---: | ---: | ---: | ---: |
+| 5k | 54.4% (5,073) | 54.3% (5,027) | 52.1% (4,831) | 53.8% (5,009) |
+| 10k | 55.7% (10,253) | 55.7% (9,968) | 52.3% (10,133) | 53.7% (10,585) |
+| 20k | 54.4% (20,137) | 54.5% (19,968) | 52.4% (19,681) | 53.9% (18,209) |
+| 40k | 54.4% (39,757) | 54.9% (40,152) | 52.2% (39,883) | 54.0% (39,601) |
+| 80k | 55.7% (79,907) | 55.9% (80,168) | 51.5% (79,381) | 50.1% (77,861) |
+
+![Held-out attacker bit accuracy by architecture and parameter count, seed 7](img/attacker_size_sweep_seed7_32bit_5000_steps.png)
+
+### Observation
+
+Fresh CNN and MLP attackers recover about 54–56% of plaintext bits at every tested size, so the pair leaks information even to approximately 5k-parameter attackers. BiLSTM recovers less (51.5–52.4%). None of the four families shows a consistent increase in accuracy as parameter count rises. The 80k Transformer drops to 50.1% despite smaller Transformers reaching about 54%; this is one attack run, so it could reflect optimization or initialization rather than a benefit of greater size. The strongest recorded attacker is the 80k MLP at 55.9%, only 1.6 percentage points above the 5k MLP. These results describe one trained Alice/Bob pair and one attacker initialization per size; repeated attacker starts and more training steps are needed to establish a reliable size trend.
+
 ## Current interpretation and next controlled comparison
 
 The completed results show that Bob can learn reliable communication while fresh attackers with different architectures can still recover information. The most useful next experiment is a controlled multi-seed study that changes one factor at a time:
