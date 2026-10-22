@@ -14,6 +14,7 @@ Concise, implementation-oriented notes for Sebastian Raschka's eight-video serie
 | [6](06_rlvr_and_grpo.md) | Reinforcement learning I | Implement RL with verifiable rewards using a readable GRPO training loop. |
 | [7](07_grpo_metrics_stability_and_format_rewards.md) | Reinforcement learning II | Interpret GRPO metrics, stabilize updates, and experiment with KL and format rewards. |
 | [8](08_reasoning_distillation.md) | Reasoning distillation | Train Qwen3-0.6B to imitate a larger teacher using completion-only cross-entropy. |
+| [9](09_reasoning_effort_modes.md) | Reasoning effort modes | Control the inference-time reasoning budget with effort-conditioned training, learned modes, and hard budgets. |
 
 ## The complete pipeline
 
@@ -66,4 +67,3 @@ The series' recurring lesson is that more compute is not automatically better. M
 - [Lecture 6](https://www.youtube.com/watch?v=237Hf7Q3lgg)
 - Lecture 7 (transcript supplied locally)
 - Lecture 8 (transcript supplied locally)
-

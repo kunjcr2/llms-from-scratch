@@ -1,0 +1,190 @@
+# Reasoning Effort Modes in LLMs
+
+These notes summarize Sebastian Raschka's article *Controlling Reasoning Effort in
+LLMs* (July 18, 2026). The article extends the reasoning-model workflow with a
+useful question: how can one model spend different amounts of computation on
+different requests?
+
+## 1. What a reasoning model is
+
+A reasoning model generates an intermediate trace before its final answer. The
+trace can contain decomposition, intermediate calculations, backtracking, and
+self-correction. “Reasoning” is a technical label, not a claim that the model
+thinks in the same way as a person.
+
+The trace is usually delimited with tokens such as `<think>` and `</think>`.
+These delimiters are formatting conventions: they let a training pipeline or
+user interface separate the trace from the answer, but they do not create the
+reasoning ability by themselves.
+
+## 2. Two ways to improve reasoning performance
+
+### Training-time scaling
+
+Training changes the model weights. Reinforcement learning with verifiable
+rewards (RLVR) is a common recipe:
+
+1. Generate a response to a verifiable problem.
+2. Check the final result with a deterministic evaluator, such as a symbolic
+   math checker, compiler, or unit tests.
+3. Reward correct responses and update the policy.
+
+The basic signal can be written as:
+
+```text
+total reward = answer-accuracy reward + format reward
+```
+
+The format component can encourage a response structure such as a reasoning
+block followed by a final answer. In the DeepSeek-R1-style setup summarized in
+the article, the final answer drives the correctness reward; the intermediate
+trace is not directly graded. Nevertheless, RL can lead to useful emergent
+behaviors such as noticing an error, backtracking, and trying again. These
+are often called “Aha” moments.
+
+### Inference-time scaling
+
+Inference scaling spends additional compute after training while leaving the
+weights unchanged. Examples include:
+
+- generating longer reasoning traces;
+- sampling multiple solutions and selecting by majority vote (self-consistency);
+- self-refinement or verification loops; and
+- selecting a reasoning-effort mode.
+
+Training and inference scaling are complementary. A reasoning-trained model can
+still benefit from additional inference-time samples or a larger token budget.
+
+## 3. Reasoning on and off
+
+Early reasoning models generally reasoned for every prompt. Hybrid models
+instead support both direct-answer and reasoning behavior.
+
+For example, a model can be trained with two forms of data:
+
+```text
+thinking:    <think>{reasoning}</think>{answer}
+no-thinking: <think></think>{answer}
+```
+
+At inference time, the client or tokenizer can select one of these forms. An
+empty prefilled reasoning block acts as a hard switch because the model starts
+directly in the answer section. A natural-language instruction such as
+`/think` or `/no_think` is a softer switch whose effect depends on training.
+
+The training stage is important: adding an effort instruction to an arbitrary
+model does not automatically teach it to follow that instruction.
+
+## 4. What a reasoning-effort setting controls
+
+An effort setting is a conditioning signal that asks the same checkpoint to
+use a smaller or larger reasoning budget. It normally affects three related
+quantities:
+
+- **reasoning length:** more effort usually permits more generated tokens;
+- **quality:** extra tokens can improve difficult-task accuracy; and
+- **cost and latency:** more generated tokens require more inference compute.
+
+The relationship is not unlimited. Accuracy commonly shows diminishing or
+uneven returns at high effort, so the most expensive setting is not always the
+best value. A smaller model at high effort can sometimes approach the quality
+of a larger model at lower effort.
+
+Effort settings can be ordinal (`low`, `medium`, `high`) or continuous. An
+ordinal label is easier to expose in a product interface; a continuous value
+between 0 and 1 permits finer-grained control but requires more careful
+training and evaluation.
+
+## 5. How effort modes can be trained
+
+The exact implementation is model-specific. Two general approaches are:
+
+### Effort-conditioned RLVR
+
+Include the requested effort in the prompt and change the length cost in the
+reward:
+
+```text
+reward(response, effort)
+  = correctness(response)
+  - length_penalty(effort) * generated_tokens
+```
+
+Use a larger token penalty for low effort and a smaller penalty for high effort.
+The policy then learns that the effort label changes the trade-off between
+shortness and solving time. An implementation may also retain a format reward
+to keep the output structure stable.
+
+### Effort-conditioned supervised fine-tuning
+
+After the main reasoning model has been trained, pair effort labels with
+responses that demonstrate the desired amount of reasoning. The target
+responses may be human-written, generated by a teacher, or generated and
+filtered. The model learns the mapping from the label to the target trace
+length and style.
+
+The two approaches can be combined: SFT can establish the behaviors and RLVR
+can optimize correctness under effort-dependent token costs.
+
+### Inkling-style continuous conditioning
+
+The article describes Inkling as an example in which the requested effort is a
+continuous value. During RL, the effort value is supplied in the system
+message and the per-token cost is adjusted for that sample. At inference time,
+the same type of value selects the desired behavior. The exact reward
+coefficients are model-specific and should not be assumed to generalize.
+
+## 6. Learned effort modes versus hard budgets
+
+These are related but distinct controls:
+
+- A **learned effort mode** changes how the policy chooses to reason. It is
+  learned during SFT, RLVR, or both.
+- A **hard inference budget** limits how many reasoning tokens may be produced.
+  The client can ask the model to close its reasoning block near the limit and
+  then continue with the final answer.
+
+A budget can be applied on top of a learned mode. For example, regular and
+medium-effort behavior may each be run with a short or long external budget.
+The learned mode affects token use and problem-solving style; the hard budget
+limits maximum cost and latency.
+
+## 7. Examples of implementation patterns
+
+The article contrasts several public model designs:
+
+| Pattern | How the mode is selected | Main idea |
+|---|---|---|
+| Qwen3-style thinking toggle | Chat template or tokenizer | Enable reasoning, or prefill an empty reasoning block for direct answers. |
+| DeepSeek V4-style specialists | Mode-specific post-training and prompt | Separate specialists use different context windows and length penalties, then are distilled into one checkpoint. |
+| Nemotron 3 Ultra-style modes | Chat-template flags plus optional budget | Learned regular/medium/off modes can be combined with an external token budget. |
+| Inkling-style conditioning | Continuous effort value in the system message | RL uses effort-dependent token costs rather than only discrete labels. |
+
+These examples show why the prompt or chat-template string is only the
+inference interface. The behavior comes from the corresponding post-training
+recipe.
+
+## 8. Model scale and reasoning effort are separate knobs
+
+Choosing a larger checkpoint and increasing effort are different operations:
+
+- moving to a larger model reflects a model/training-scale choice;
+- increasing effort spends more inference compute for the selected model.
+
+Both can improve accuracy and both increase cost. The right combination depends
+on the task's accuracy target, latency budget, and API price. Benchmark curves
+should therefore report quality together with token usage or cost rather than
+accuracy alone.
+
+## Takeaways
+
+- Reasoning effort is controllable inference-time compute, not a new model
+  architecture.
+- `<think>` delimiters organize traces but do not produce reasoning ability.
+- RLVR can teach reasoning behavior from verifiable outcomes, while
+  effort-conditioned SFT or RLVR can teach multiple budgets.
+- Learned modes and hard token budgets should be evaluated separately.
+- More reasoning tokens usually help until returns diminish; cost, latency, and
+  accuracy must be measured together.
+- Effort controls only work reliably when they are represented in the
+  post-training data or reward—not merely added to an arbitrary prompt.
