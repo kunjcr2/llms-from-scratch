@@ -6,9 +6,15 @@ Alice encrypts a binary plaintext using a shared binary key, Bob reconstructs it
 
 These are research experiments, not production cryptography or a replacement for AES/TLS.
 
-## 1. Preliminary CNN-trained pilots
+## Week 1
 
-### Setup
+**What is it about?** Establishing the baseline behavior of the Alice–Bob–Eve setup: whether fresh attackers with different architectures can recover plaintext after Alice and Bob train against one Eve.
+
+**What results did we want?** Reliable Bob communication plus held-out attack measurements that show which attacker families recover above chance, before isolating capacity as a separate variable.
+
+### 1. Preliminary CNN-trained pilots
+
+#### Setup
 
 - Alice and Bob: standard CNN / mix-and-transform architecture.
 - Training attacker: CNN Eve.
@@ -23,13 +29,13 @@ These are research experiments, not production cryptography or a replacement for
 | BiLSTM | 88.6% | 72.9% |
 | Transformer | 50.0% | 49.9% |
 
-### Observation
+#### Observation
 
 The BiLSTM recovered substantial information at both message lengths. The Transformer result only means that this particular configuration did not learn an attack in that run; it is not evidence that the learned cipher was secure.
 
-## 2. Five-seed 32-bit CNN-trained sweep
+### 2. Five-seed 32-bit CNN-trained sweep
 
-### Setup
+#### Setup
 
 - Alice and Bob: CNN / mix-and-transform architecture.
 - Training attacker: CNN Eve.
@@ -47,13 +53,13 @@ The BiLSTM recovered substantial information at both message lengths. The Transf
 | Fresh Transformer Eve | 75.34% | 23.57% | 7.89 / 32 |
 | Bob | 100.00% | 0.00% | n/a |
 
-### Observation
+#### Observation
 
 Bob communicated reliably, but fresh non-CNN attackers repeatedly decoded above chance. The strongest average attacker was the Transformer, although its large standard deviation shows that success was strongly seed-dependent. This is evidence that training only against one CNN Eve did not create a robust scheme against other learned attackers.
 
-## 3. Capacity-matched 32-bit 4x4 architecture sweep
+### 3. Capacity-matched 32-bit 4x4 architecture sweep
 
-### Setup
+#### Setup
 
 - Alice and Bob: 19,409-parameter CNNs.
 - Message/key/ciphertext length: 32 bits.
@@ -71,13 +77,13 @@ Bob communicated reliably, but fresh non-CNN attackers repeatedly decoded above 
 | BiLSTM | 59.00% | 60.75% | 57.00% | 58.46% |
 | Transformer | 54.49% | 56.30% | 51.29% | 53.47% |
 
-### Observation
+#### Observation
 
 Most cells are close to chance, but the MLP reaches 63.35% against the pair trained with a CNN attacker. This suggests that attacker architecture can matter even when the models are in a similar parameter range. Because this is currently a single-seed result, it needs repeated runs before making a strong architecture-level claim.
 
-## 4. Pretrained ResNet-18 Alice/Bob, 64-bit experiments
+### 4. Pretrained ResNet-18 Alice/Bob, 64-bit experiments
 
-### Setup
+#### Setup
 
 - Alice and Bob: genuine ImageNet-pretrained ResNet-18 models, not ResNets trained from scratch.
 - Input: 64-bit message plus 64-bit key, reshaped into an 8x16 three-channel image and resized to 224x224.
@@ -95,13 +101,19 @@ Most cells are close to chance, but the MLP reaches 63.35% against the pair trai
 | Transformer | 65.9% | 63.2% |
 | ELM | 63.6% | 64.2% |
 
-### Observation
+#### Observation
 
 Several fresh attackers remained clearly above chance in both runs. Longer Alice/Bob training reduced the CNN, MLP, and Transformer attack scores in these recorded runs, but did not remove the vulnerability. This is a preliminary comparison only: it does not show that larger attackers are consistently stronger, or that longer training alone caused the change.
 
-## 5. Fresh attacker size sweep against one frozen 32-bit Alice/Bob pair
+## Week 2
 
-### Setup
+**What is it about?** The effect of a fresh attacker's architecture size on plaintext recovery from one frozen Alice–Bob pair. The Stage-1 Eve is held fixed within each sweep; its architecture is not the variable being tested.
+
+**What results did we want?** For each fresh attacker family, determine whether increasing its parameter count from roughly 5k to 80k consistently increases held-out plaintext recovery, and whether any size trend differs by architecture.
+
+### 5. Fresh attacker size sweep against one frozen 32-bit Alice/Bob pair
+
+#### Setup
 
 - Seed: 7. One Alice/Bob pair was trained against a CNN Eve, then frozen for all attacks.
 - Alice, Bob, and training Eve: 40,609 CNN parameters each; Bob's held-out bit accuracy is shown as 100.0% in the figure.
@@ -119,9 +131,31 @@ Several fresh attackers remained clearly above chance in both runs. Longer Alice
 
 ![Held-out attacker bit accuracy by architecture and parameter count, seed 7](img/attacker_size_sweep_seed7_32bit_5000_steps.png)
 
-### Observation
+#### Observation
 
 Fresh CNN and MLP attackers recover about 54–56% of plaintext bits at every tested size, so the pair leaks information even to approximately 5k-parameter attackers. BiLSTM recovers less (51.5–52.4%). None of the four families shows a consistent increase in accuracy as parameter count rises. The 80k Transformer drops to 50.1% despite smaller Transformers reaching about 54%; this is one attack run, so it could reflect optimization or initialization rather than a benefit of greater size. The strongest recorded attacker is the 80k MLP at 55.9%, only 1.6 percentage points above the 5k MLP. These results describe one trained Alice/Bob pair and one attacker initialization per size; repeated attacker starts and more training steps are needed to establish a reliable size trend.
+
+### 6. Fresh attacker size sweep after training Alice/Bob against an MLP Eve
+
+#### Setup
+
+- Notebook: [`scripts/mlp_attacker_size_same_pair.ipynb`](scripts/mlp_attacker_size_same_pair.ipynb).
+- Seed: 7. Alice and Bob were trained against a ciphertext-only `MLP(32 → 133 → 218 → 32)` Eve, then frozen for all attacks.
+- Alice, Bob, and the training MLP Eve each have 40,609 parameters. Bob's held-out bit accuracy was 100.0%.
+- Fresh CNN, MLP, BiLSTM, and Transformer attackers were tested at 5k, 10k, 20k, 40k, and 80k target parameters; each attack used 5,000 steps and the same 16,384 held-out messages.
+- Accuracies are transcribed from the supplied chart and rounded to one decimal place. Parentheses show the actual parameter count.
+
+| Target size | CNN | MLP | BiLSTM | Transformer |
+| --- | ---: | ---: | ---: | ---: |
+| 5k | 52.9% (5,073) | 52.8% (5,027) | 50.7% (4,831) | 51.9% (5,009) |
+| 10k | 52.9% (10,253) | 52.8% (9,968) | 51.0% (10,133) | 52.2% (10,585) |
+| 20k | 52.8% (20,137) | 52.8% (19,968) | 51.3% (19,681) | 52.4% (18,209) |
+| 40k | 52.8% (39,757) | 52.8% (40,152) | 51.4% (39,883) | 52.4% (39,601) |
+| 80k | 52.9% (79,907) | 52.8% (80,168) | 52.0% (79,381) | 50.0% (77,861) |
+
+#### Observation
+
+All recorded fresh attackers are close to chance (50%). CNN and MLP recovery is essentially flat at about 52.8–52.9% across the tested capacities. BiLSTM rises gradually from 50.7% to 52.0%, while the Transformer reaches 52.4% at 20k–40k parameters before falling to chance at 80k. This single run does not show a consistent gain from attacker size; differences at this scale may reflect optimization and initialization. Repeating each size across seeds and attacker initializations is required before making a reliable claim about the effect of architecture size.
 
 ## Current interpretation and next controlled comparison
 
