@@ -107,9 +107,9 @@ Several fresh attackers remained clearly above chance in both runs. Longer Alice
 
 ## Week 2
 
-**What is it about?** The effect of a fresh attacker's architecture size on plaintext recovery from one frozen Alice–Bob pair. The Stage-1 Eve is held fixed within each sweep; its architecture is not the variable being tested.
+**What is it about?** The effect of a fresh attacker's architecture size on plaintext recovery from one frozen Alice–Bob pair. The Stage-1 Eve is held fixed within each sweep; its architecture is not the variable being tested. The later repeated study also tests whether the apparent size effect changes with attacker initialization and training time.
 
-**What results did we want?** For each fresh attacker family, determine whether increasing its parameter count from roughly 5k to 80k consistently increases held-out plaintext recovery, and whether any size trend differs by architecture.
+**What results did we want?** For each fresh attacker family, determine whether increasing its parameter count from roughly 5k to 80k consistently increases held-out plaintext recovery, whether the trend survives repeated initializations, and whether it becomes clearer after longer attacker training.
 
 ### 5. Fresh attacker size sweep against one frozen 32-bit Alice/Bob pair
 
@@ -157,15 +157,53 @@ Fresh CNN and MLP attackers recover about 54–56% of plaintext bits at every te
 
 All recorded fresh attackers are close to chance (50%). CNN and MLP recovery is essentially flat at about 52.8–52.9% across the tested capacities. BiLSTM rises gradually from 50.7% to 52.0%, while the Transformer reaches 52.4% at 20k–40k parameters before falling to chance at 80k. This single run does not show a consistent gain from attacker size; differences at this scale may reflect optimization and initialization. Repeating each size across seeds and attacker initializations is required before making a reliable claim about the effect of architecture size.
 
-## Current interpretation and next controlled comparison
+### 7. Partial repeated attacker-size study on A100
 
-The completed results show that Bob can learn reliable communication while fresh attackers with different architectures can still recover information. The most useful next experiment is a controlled multi-seed study that changes one factor at a time:
+#### Setup and completion status
 
-1. attacker capacity;
-2. attacker architecture; and
-3. Alice/Bob architecture or input representation.
+- Notebook: [`scripts/attacker_size_repeated_a100.ipynb`](scripts/attacker_size_repeated_a100.ipynb).
+- Pair seed: 7. Alice and Bob were trained for 5,000 steps against a 40,609-parameter MLP Eve, then frozen.
+- Fresh attacker seeds: 101, 102, and 103. Target sizes: 5k, 10k, 20k, 40k, and 80k parameters.
+- Each attacker used batches of 16,384 and was evaluated on the same 65,536 held-out messages at 5,000 and 20,000 steps.
+- The interrupted run produced all CNN and MLP results. It produced all BiLSTM 5k-step measurements, but only two of the three 80k BiLSTMs reached 20k steps. No Transformer attack started.
+- Consequently, 44 of the planned 60 attackers completed 20,000 steps; a 45th attacker reached the 5,000-step checkpoint.
+- Important validity warning: Bob finished at only **87.50% bit accuracy** (4.00 wrong bits per 32-bit message on average), below the notebook's 99% reliability criterion. This was not a successfully synchronized Alice-Bob pair.
 
-This will help separate the effect of model size from the effect of architecture, training duration, and the ResNet image-shaped representation.
+Values below are mean held-out bit accuracy +/- sample standard deviation across attacker seeds. Each cell has `n=3`, except the marked 80k BiLSTM result at 20k steps, which has `n=2`.
+
+#### After 5,000 attack steps
+
+| Target size | CNN | MLP | BiLSTM | Transformer |
+| --- | ---: | ---: | ---: | ---: |
+| 5k | 52.24 +/- 0.01% | 52.22 +/- 0.19% | 50.41 +/- 0.05% | not reached |
+| 10k | 52.44 +/- 0.17% | 52.54 +/- 0.01% | 50.66 +/- 0.20% | not reached |
+| 20k | 52.43 +/- 0.18% | 52.56 +/- 0.01% | 50.60 +/- 0.13% | not reached |
+| 40k | 52.43 +/- 0.19% | 52.65 +/- 0.15% | 50.69 +/- 0.05% | not reached |
+| 80k | 52.32 +/- 0.20% | 52.71 +/- 0.26% | 50.91 +/- 0.07% | not reached |
+
+#### After 20,000 attack steps
+
+| Target size | CNN | MLP | BiLSTM | Transformer |
+| --- | ---: | ---: | ---: | ---: |
+| 5k | 52.55 +/- 0.01% | 52.60 +/- 0.05% | 51.18 +/- 0.14% | not reached |
+| 10k | 52.53 +/- 0.01% | 54.03 +/- 1.37% | 51.58 +/- 0.08% | not reached |
+| 20k | 52.51 +/- 0.02% | 55.70 +/- 0.73% | 51.68 +/- 0.04% | not reached |
+| 40k | 52.53 +/- 0.01% | 58.90 +/- 1.98% | 52.05 +/- 0.03% | not reached |
+| 80k | 52.52 +/- 0.03% | 62.39 +/- 1.45% | 51.90 +/- 0.08% (n=2) | not reached |
+
+![Partial repeated A100 attacker-size study at 5k and 20k attack steps](img/attacker_size_repeated_a100_partial.png)
+
+#### Observation
+
+The main result is a clear interaction between attacker size and training time for the MLP. At 5,000 steps, its mean accuracy changes only from 52.22% at 5k parameters to 52.71% at 80k parameters, which looks nearly flat. At 20,000 steps, it rises steadily from 52.60% to 62.39%, a 9.80 percentage-point difference. The effect is not produced by one lucky restart: every 80k MLP reached 60.78-63.61%, whereas every 5k MLP remained at 52.56-52.66%. This is strong evidence that the earlier 5,000-step sweeps could hide a capacity effect by stopping larger MLP attackers too early.
+
+The effect is architecture-specific. CNN accuracy is essentially identical across all five sizes after 20,000 steps (52.51-52.55%), so extra CNN parameters did not help in this range. BiLSTM improves more slowly, from 51.18% at 5k parameters to about 52.0% at 40k-80k, but the increase is small and the 80k result is incomplete. Since no Transformer runs were reached, the experiment cannot say anything about Transformer size.
+
+The result is useful for studying attacker optimization and capacity **conditional on this frozen pair**, but it is not a valid successful-cryptography result: Bob's training became unstable after initially reaching very low reconstruction error and finished with only 87.5% bit accuracy. It also comes from one Alice-Bob pair. Therefore, the strongest defensible conclusion is: **attacker size can matter substantially, but only after sufficient training and only for some architectures; this interrupted run does not establish that the pattern generalizes to reliably synchronized pairs.**
+
+## Current interpretation
+
+Across the completed studies, a 5,000-step attack budget is not enough to conclude that attacker size has no effect. The partial repeated A100 study shows a strong MLP size trend at 20,000 steps while CNN remains flat and BiLSTM changes only modestly. Architecture, capacity, and optimization time therefore interact; parameter count alone does not predict attack strength.
 
 ## Reference
 
