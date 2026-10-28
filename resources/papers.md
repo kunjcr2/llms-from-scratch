@@ -17,6 +17,7 @@
 - [Qwen3 Technical Report](https://arxiv.org/abs/2505.09388) — Qwen Team, 2025
 - [Qwen3-VL Technical Report](https://arxiv.org/abs/2511.21631) — Qwen Team, 2025
 - [DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model`](https://arxiv.org/abs/2405.04434)
+- [Next Latent Prediction](https://www.microsoft.com/en-us/research/publication/next-latent-prediction-transformers-learn-compact-world-models/?utm_source=chatgpt.com)
 
 ---
 
