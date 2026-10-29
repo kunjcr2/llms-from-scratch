@@ -4,6 +4,17 @@ This is an adversarial-neural-cryptography experiment based on the Aliceâ€“Bobâ€
 
 The purpose is to test **attacker-architecture overfitting**: does a learned cipher only fool the CNN it trained against?
 
+## Results and figure naming
+
+The complete experimental record is in [RESULTS.md](RESULTS.md). Attacker-size figures use the convention `week<week>_attacker_size_stage1_<eve>[_partial]_seed<seed>_<updates>_updates.svg`, where `stage1_<eve>` identifies the Eve used while Alice and Bob were synchronized, and `partial` marks an interrupted study.
+
+| Figure | Study |
+| --- | --- |
+| `week2_attacker_size_stage1_cnn_seed7_5k_updates.svg` | Single-run sweep after Stage-1 CNN-Eve training. |
+| `week2_attacker_size_stage1_mlp_partial_seed7_20k_updates.svg` | Partial repeated sweep after Stage-1 MLP-Eve training; Bob was unreliable. |
+| `week3_attacker_size_stage1_mlp_seed7_20k_updates.svg` | Reliable repeated sweep after Stage-1 MLP-Eve training. |
+| `week3_attacker_size_stage1_cnn_seed7_20k_updates.svg` | Reliable repeated sweep after Stage-1 CNN-Eve training. |
+
 ## Preliminary, unmatched-capacity pilot results
 
 Held-out Eve bit accuracy (50% is random guessing):

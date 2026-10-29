@@ -129,7 +129,7 @@ Several fresh attackers remained clearly above chance in both runs. Longer Alice
 | 40k         | 54.4% (39,757) | 54.9% (40,152) | 52.2% (39,883) | 54.0% (39,601) |
 | 80k         | 55.7% (79,907) | 55.9% (80,168) | 51.5% (79,381) | 50.1% (77,861) |
 
-![Held-out attacker bit accuracy by architecture and parameter count, seed 7](img/attacker_size_sweep_seed7_32bit_5000_steps.svg)
+![Week 2 attacker-size sweep after Stage-1 CNN-Eve training, pair seed 7, 5,000 attacker updates](img/week2_attacker_size_stage1_cnn_seed7_5k_updates.svg)
 
 #### Observation
 
@@ -191,7 +191,7 @@ Values below are mean held-out bit accuracy +/- sample standard deviation across
 | 40k         | 52.53 +/- 0.01% | 58.90 +/- 1.98% |       52.05 +/- 0.03% | not reached |
 | 80k         | 52.52 +/- 0.03% | 62.39 +/- 1.45% | 51.90 +/- 0.08% (n=2) | not reached |
 
-![Partial repeated A100 attacker-size study at 20,000 attack steps](img/attacker_size_repeated_a100_partial_20k.svg)
+![Week 2 partial attacker-size study after Stage-1 MLP-Eve training, pair seed 7, 20,000 attacker updates](img/week2_attacker_size_stage1_mlp_partial_seed7_20k_updates.svg)
 
 #### Observation
 
@@ -233,7 +233,7 @@ The result is useful for studying attacker optimization and capacity **condition
 
 Full-message accuracy was 0.0% in every completed condition. The validation-selected initialization also had 0.0% full-message accuracy in every completed condition; selection used validation L1 rather than test accuracy.
 
-![Week 3 fresh-attacker recovery after 20,000 updates; error bars show initialization standard deviation](img/attacker_size_repeated_mlp_eve_20k.svg)
+![Week 3 attacker-size study after Stage-1 MLP-Eve training, pair seed 7, 20,000 attacker updates; error bars show initialization standard deviation](img/week3_attacker_size_stage1_mlp_seed7_20k_updates.svg)
 
 #### Observation
 
@@ -267,7 +267,7 @@ The zero exact-message recovery rate is consistent with these being bit-level le
 
 At 20,000 updates, full-message accuracy remained 0.0% for CNN and Transformer attackers. MLP achieved 0.13% at 40k and 0.32% at 80k, so it recovered some complete 32-bit messages. Validation-selected initializations were chosen by validation L1, not test accuracy.
 
-![Fresh-attacker recovery after Stage 1 CNN-Eve training; error bars show initialization standard deviation](img/attacker_size_repeated_cnn_eve_20k.svg)
+![Week 3 attacker-size study after Stage-1 CNN-Eve training, pair seed 7, 20,000 attacker updates; error bars show initialization standard deviation](img/week3_attacker_size_stage1_cnn_seed7_20k_updates.svg)
 
 #### Observation
 
