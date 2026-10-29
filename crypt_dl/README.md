@@ -8,6 +8,8 @@ The purpose is to test **attacker-architecture overfitting**: does a learned cip
 
 The complete experimental record is in [RESULTS.md](RESULTS.md). Attacker-size figures use the convention `week<week>_attacker_size_stage1_<eve>[_partial]_seed<seed>_<updates>_updates.svg`, where `stage1_<eve>` identifies the Eve used while Alice and Bob were synchronized, and `partial` marks an interrupted study.
 
+Regenerate the consistently styled figures with `node scripts/plot_attacker_size_figures.js`. Each one uses the same 50–85% y-axis for direct comparison.
+
 | Figure | Study |
 | --- | --- |
 | `week2_attacker_size_stage1_cnn_seed7_5k_updates.svg` | Single-run sweep after Stage-1 CNN-Eve training. |
