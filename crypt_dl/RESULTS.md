@@ -129,7 +129,7 @@ Several fresh attackers remained clearly above chance in both runs. Longer Alice
 | 40k         | 54.4% (39,757) | 54.9% (40,152) | 52.2% (39,883) | 54.0% (39,601) |
 | 80k         | 55.7% (79,907) | 55.9% (80,168) | 51.5% (79,381) | 50.1% (77,861) |
 
-![Held-out attacker bit accuracy by architecture and parameter count, seed 7](img/attacker_size_sweep_seed7_32bit_5000_steps.png)
+![Held-out attacker bit accuracy by architecture and parameter count, seed 7](img/attacker_size_sweep_seed7_32bit_5000_steps.svg)
 
 #### Observation
 
@@ -191,7 +191,7 @@ Values below are mean held-out bit accuracy +/- sample standard deviation across
 | 40k         | 52.53 +/- 0.01% | 58.90 +/- 1.98% |       52.05 +/- 0.03% | not reached |
 | 80k         | 52.52 +/- 0.03% | 62.39 +/- 1.45% | 51.90 +/- 0.08% (n=2) | not reached |
 
-![Partial repeated A100 attacker-size study at 5k and 20k attack steps](img/attacker_size_repeated_a100_partial.png)
+![Partial repeated A100 attacker-size study at 20,000 attack steps](img/attacker_size_repeated_a100_partial_20k.svg)
 
 #### Observation
 
@@ -233,7 +233,7 @@ The result is useful for studying attacker optimization and capacity **condition
 
 Full-message accuracy was 0.0% in every completed condition. The validation-selected initialization also had 0.0% full-message accuracy in every completed condition; selection used validation L1 rather than test accuracy.
 
-![Week 3 fresh-attacker recovery after 20,000 updates; error bars show initialization standard deviation](img/attacker_size_repeated_reliable_20k.svg)
+![Week 3 fresh-attacker recovery after 20,000 updates; error bars show initialization standard deviation](img/attacker_size_repeated_mlp_eve_20k.svg)
 
 #### Observation
 
@@ -257,13 +257,13 @@ The zero exact-message recovery rate is consistent with these being bit-level le
 - Attacker initializations: seeds 101, 102, and 103. Each attacker was evaluated after 5,000 and 20,000 updates.
 - Completion: all 45 attackers and all 90 expected test records completed. Metrics below are the mean held-out bit accuracy at 20,000 updates; parentheses contain the between-initialization standard deviation in percentage points.
 
-| Target size | CNN | MLP | Transformer |
-| --- | ---: | ---: | ---: |
-| 5k | 70.13% (3.44 pp)<br>5,073 params | 62.11% (0.19 pp)<br>5,027 params | 60.94% (0.14 pp)<br>5,009 params |
-| 10k | 66.87% (4.53 pp)<br>10,253 params | 65.10% (0.19 pp)<br>9,968 params | 61.50% (0.12 pp)<br>10,585 params |
-| 20k | 66.62% (4.17 pp)<br>20,137 params | 72.96% (1.02 pp)<br>19,968 params | 61.98% (0.58 pp)<br>18,209 params |
-| 40k | 67.18% (5.42 pp)<br>39,757 params | 79.58% (1.79 pp)<br>40,152 params | 62.80% (1.24 pp)<br>39,601 params |
-| 80k | 65.70% (4.75 pp)<br>79,907 params | 80.89% (3.16 pp)<br>80,168 params | 62.42% (1.13 pp)<br>77,861 params |
+| Target size |                               CNN |                               MLP |                       Transformer |
+| ----------- | --------------------------------: | --------------------------------: | --------------------------------: |
+| 5k          |  70.13% (3.44 pp)<br>5,073 params |  62.11% (0.19 pp)<br>5,027 params |  60.94% (0.14 pp)<br>5,009 params |
+| 10k         | 66.87% (4.53 pp)<br>10,253 params |  65.10% (0.19 pp)<br>9,968 params | 61.50% (0.12 pp)<br>10,585 params |
+| 20k         | 66.62% (4.17 pp)<br>20,137 params | 72.96% (1.02 pp)<br>19,968 params | 61.98% (0.58 pp)<br>18,209 params |
+| 40k         | 67.18% (5.42 pp)<br>39,757 params | 79.58% (1.79 pp)<br>40,152 params | 62.80% (1.24 pp)<br>39,601 params |
+| 80k         | 65.70% (4.75 pp)<br>79,907 params | 80.89% (3.16 pp)<br>80,168 params | 62.42% (1.13 pp)<br>77,861 params |
 
 At 20,000 updates, full-message accuracy remained 0.0% for CNN and Transformer attackers. MLP achieved 0.13% at 40k and 0.32% at 80k, so it recovered some complete 32-bit messages. Validation-selected initializations were chosen by validation L1, not test accuracy.
 
