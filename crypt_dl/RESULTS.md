@@ -23,11 +23,11 @@ These are research experiments, not production cryptography or a replacement for
 - These attackers were not capacity-matched, so this is a pilot baseline only.
 
 | Fresh attacker | 16-bit accuracy | 32-bit accuracy |
-| --- | ---: | ---: |
-| CNN | 57.9% | 54.8% |
-| MLP | 83.5% | 60.3% |
-| BiLSTM | 88.6% | 72.9% |
-| Transformer | 50.0% | 49.9% |
+| -------------- | --------------: | --------------: |
+| CNN            |           57.9% |           54.8% |
+| MLP            |           83.5% |           60.3% |
+| BiLSTM         |           88.6% |           72.9% |
+| Transformer    |           50.0% |           49.9% |
 
 #### Observation
 
@@ -45,13 +45,13 @@ The BiLSTM recovered substantial information at both message lengths. The Transf
 - Evaluation: newly generated held-out plaintext/ciphertext pairs.
 - Important limitation: attacker capacities were not yet matched.
 
-| Model | Mean bit accuracy | Standard deviation | Mean Hamming error |
-| --- | ---: | ---: | ---: |
-| Fresh CNN Eve | 56.36% | 1.93% | 13.96 / 32 |
-| Fresh MLP Eve | 59.93% | 6.06% | 12.82 / 32 |
-| Fresh BiLSTM Eve | 66.52% | 17.16% | 10.71 / 32 |
-| Fresh Transformer Eve | 75.34% | 23.57% | 7.89 / 32 |
-| Bob | 100.00% | 0.00% | n/a |
+| Model                 | Mean bit accuracy | Standard deviation | Mean Hamming error |
+| --------------------- | ----------------: | -----------------: | -----------------: |
+| Fresh CNN Eve         |            56.36% |              1.93% |         13.96 / 32 |
+| Fresh MLP Eve         |            59.93% |              6.06% |         12.82 / 32 |
+| Fresh BiLSTM Eve      |            66.52% |             17.16% |         10.71 / 32 |
+| Fresh Transformer Eve |            75.34% |             23.57% |          7.89 / 32 |
+| Bob                   |           100.00% |              0.00% |                n/a |
 
 #### Observation
 
@@ -70,12 +70,12 @@ Bob communicated reliably, but fresh non-CNN attackers repeatedly decoded above 
 - One sweep shown below; 20,000 Alice/Bob training steps per row and 8,000 fresh-attacker steps per cell.
 - The current notebook supports seed 42 or 7, but multi-seed repetition has not yet been completed for this matrix.
 
-| Training Eve \\ fresh attacker | CNN | MLP | BiLSTM | Transformer |
-| --- | ---: | ---: | ---: | ---: |
-| CNN | 54.23% | 63.35% | 50.93% | 53.37% |
-| MLP | 52.82% | 57.65% | 51.33% | 52.30% |
-| BiLSTM | 59.00% | 60.75% | 57.00% | 58.46% |
-| Transformer | 54.49% | 56.30% | 51.29% | 53.47% |
+| Training Eve \\ fresh attacker |    CNN |    MLP | BiLSTM | Transformer |
+| ------------------------------ | -----: | -----: | -----: | ----------: |
+| CNN                            | 54.23% | 63.35% | 50.93% |      53.37% |
+| MLP                            | 52.82% | 57.65% | 51.33% |      52.30% |
+| BiLSTM                         | 59.00% | 60.75% | 57.00% |      58.46% |
+| Transformer                    | 54.49% | 56.30% | 51.29% |      53.47% |
 
 #### Observation
 
@@ -94,12 +94,12 @@ Most cells are close to chance, but the MLP reaches 63.35% against the pair trai
 - Key limitation: this changes both the architecture size and the input representation, so it cannot isolate the effect of size alone.
 
 | Fresh attacker | Earlier run | Longer Alice/Bob training run |
-| --- | ---: | ---: |
-| CNN | 71.8% | 64.7% |
-| MLP | 70.4% | 64.2% |
-| BiLSTM | 52.8% | 50.0% |
-| Transformer | 65.9% | 63.2% |
-| ELM | 63.6% | 64.2% |
+| -------------- | ----------: | ----------------------------: |
+| CNN            |       71.8% |                         64.7% |
+| MLP            |       70.4% |                         64.2% |
+| BiLSTM         |       52.8% |                         50.0% |
+| Transformer    |       65.9% |                         63.2% |
+| ELM            |       63.6% |                         64.2% |
 
 #### Observation
 
@@ -121,13 +121,13 @@ Several fresh attackers remained clearly above chance in both runs. Longer Alice
 - Each fresh attacker was trained for 5,000 steps and evaluated on the same 16,384 held-out messages. Chance bit accuracy is 50%.
 - Accuracies below are transcribed from the figure and rounded to one decimal place; parameter counts are the actual model sizes printed on the figure.
 
-| Target size | CNN | MLP | BiLSTM | Transformer |
-| --- | ---: | ---: | ---: | ---: |
-| 5k | 54.4% (5,073) | 54.3% (5,027) | 52.1% (4,831) | 53.8% (5,009) |
-| 10k | 55.7% (10,253) | 55.7% (9,968) | 52.3% (10,133) | 53.7% (10,585) |
-| 20k | 54.4% (20,137) | 54.5% (19,968) | 52.4% (19,681) | 53.9% (18,209) |
-| 40k | 54.4% (39,757) | 54.9% (40,152) | 52.2% (39,883) | 54.0% (39,601) |
-| 80k | 55.7% (79,907) | 55.9% (80,168) | 51.5% (79,381) | 50.1% (77,861) |
+| Target size |            CNN |            MLP |         BiLSTM |    Transformer |
+| ----------- | -------------: | -------------: | -------------: | -------------: |
+| 5k          |  54.4% (5,073) |  54.3% (5,027) |  52.1% (4,831) |  53.8% (5,009) |
+| 10k         | 55.7% (10,253) |  55.7% (9,968) | 52.3% (10,133) | 53.7% (10,585) |
+| 20k         | 54.4% (20,137) | 54.5% (19,968) | 52.4% (19,681) | 53.9% (18,209) |
+| 40k         | 54.4% (39,757) | 54.9% (40,152) | 52.2% (39,883) | 54.0% (39,601) |
+| 80k         | 55.7% (79,907) | 55.9% (80,168) | 51.5% (79,381) | 50.1% (77,861) |
 
 ![Held-out attacker bit accuracy by architecture and parameter count, seed 7](img/attacker_size_sweep_seed7_32bit_5000_steps.png)
 
@@ -145,13 +145,13 @@ Fresh CNN and MLP attackers recover about 54–56% of plaintext bits at every te
 - Fresh CNN, MLP, BiLSTM, and Transformer attackers were tested at 5k, 10k, 20k, 40k, and 80k target parameters; each attack used 5,000 steps and the same 16,384 held-out messages.
 - Accuracies are transcribed from the supplied chart and rounded to one decimal place. Parentheses show the actual parameter count.
 
-| Target size | CNN | MLP | BiLSTM | Transformer |
-| --- | ---: | ---: | ---: | ---: |
-| 5k | 52.9% (5,073) | 52.8% (5,027) | 50.7% (4,831) | 51.9% (5,009) |
-| 10k | 52.9% (10,253) | 52.8% (9,968) | 51.0% (10,133) | 52.2% (10,585) |
-| 20k | 52.8% (20,137) | 52.8% (19,968) | 51.3% (19,681) | 52.4% (18,209) |
-| 40k | 52.8% (39,757) | 52.8% (40,152) | 51.4% (39,883) | 52.4% (39,601) |
-| 80k | 52.9% (79,907) | 52.8% (80,168) | 52.0% (79,381) | 50.0% (77,861) |
+| Target size |            CNN |            MLP |         BiLSTM |    Transformer |
+| ----------- | -------------: | -------------: | -------------: | -------------: |
+| 5k          |  52.9% (5,073) |  52.8% (5,027) |  50.7% (4,831) |  51.9% (5,009) |
+| 10k         | 52.9% (10,253) |  52.8% (9,968) | 51.0% (10,133) | 52.2% (10,585) |
+| 20k         | 52.8% (20,137) | 52.8% (19,968) | 51.3% (19,681) | 52.4% (18,209) |
+| 40k         | 52.8% (39,757) | 52.8% (40,152) | 51.4% (39,883) | 52.4% (39,601) |
+| 80k         | 52.9% (79,907) | 52.8% (80,168) | 52.0% (79,381) | 50.0% (77,861) |
 
 #### Observation
 
@@ -173,23 +173,23 @@ Values below are mean held-out bit accuracy +/- sample standard deviation across
 
 #### After 5,000 attack steps
 
-| Target size | CNN | MLP | BiLSTM | Transformer |
-| --- | ---: | ---: | ---: | ---: |
-| 5k | 52.24 +/- 0.01% | 52.22 +/- 0.19% | 50.41 +/- 0.05% | not reached |
-| 10k | 52.44 +/- 0.17% | 52.54 +/- 0.01% | 50.66 +/- 0.20% | not reached |
-| 20k | 52.43 +/- 0.18% | 52.56 +/- 0.01% | 50.60 +/- 0.13% | not reached |
-| 40k | 52.43 +/- 0.19% | 52.65 +/- 0.15% | 50.69 +/- 0.05% | not reached |
-| 80k | 52.32 +/- 0.20% | 52.71 +/- 0.26% | 50.91 +/- 0.07% | not reached |
+| Target size |             CNN |             MLP |          BiLSTM | Transformer |
+| ----------- | --------------: | --------------: | --------------: | ----------: |
+| 5k          | 52.24 +/- 0.01% | 52.22 +/- 0.19% | 50.41 +/- 0.05% | not reached |
+| 10k         | 52.44 +/- 0.17% | 52.54 +/- 0.01% | 50.66 +/- 0.20% | not reached |
+| 20k         | 52.43 +/- 0.18% | 52.56 +/- 0.01% | 50.60 +/- 0.13% | not reached |
+| 40k         | 52.43 +/- 0.19% | 52.65 +/- 0.15% | 50.69 +/- 0.05% | not reached |
+| 80k         | 52.32 +/- 0.20% | 52.71 +/- 0.26% | 50.91 +/- 0.07% | not reached |
 
 #### After 20,000 attack steps
 
-| Target size | CNN | MLP | BiLSTM | Transformer |
-| --- | ---: | ---: | ---: | ---: |
-| 5k | 52.55 +/- 0.01% | 52.60 +/- 0.05% | 51.18 +/- 0.14% | not reached |
-| 10k | 52.53 +/- 0.01% | 54.03 +/- 1.37% | 51.58 +/- 0.08% | not reached |
-| 20k | 52.51 +/- 0.02% | 55.70 +/- 0.73% | 51.68 +/- 0.04% | not reached |
-| 40k | 52.53 +/- 0.01% | 58.90 +/- 1.98% | 52.05 +/- 0.03% | not reached |
-| 80k | 52.52 +/- 0.03% | 62.39 +/- 1.45% | 51.90 +/- 0.08% (n=2) | not reached |
+| Target size |             CNN |             MLP |                BiLSTM | Transformer |
+| ----------- | --------------: | --------------: | --------------------: | ----------: |
+| 5k          | 52.55 +/- 0.01% | 52.60 +/- 0.05% |       51.18 +/- 0.14% | not reached |
+| 10k         | 52.53 +/- 0.01% | 54.03 +/- 1.37% |       51.58 +/- 0.08% | not reached |
+| 20k         | 52.51 +/- 0.02% | 55.70 +/- 0.73% |       51.68 +/- 0.04% | not reached |
+| 40k         | 52.53 +/- 0.01% | 58.90 +/- 1.98% |       52.05 +/- 0.03% | not reached |
+| 80k         | 52.52 +/- 0.03% | 62.39 +/- 1.45% | 51.90 +/- 0.08% (n=2) | not reached |
 
 ![Partial repeated A100 attacker-size study at 5k and 20k attack steps](img/attacker_size_repeated_a100_partial.png)
 
@@ -212,6 +212,9 @@ The result is useful for studying attacker optimization and capacity **condition
 #### Setup
 
 - Pair seed: 7. Bob passed the reliability check (`Bob reliability: {7: True}`).
+- Alice: CNN / `CryptCNN`, 40,609 parameters.
+- Bob: CNN / `CryptCNN`, 40,609 parameters.
+- Stage-1 Eve: ciphertext-only `MLP(32 → 133 → 218 → 32)`, 40,609 parameters.
 - Fresh attacker families: CNN, MLP, BiLSTM, and Transformer, each targeted at 5k, 10k, 20k, 40k, and 80k parameters. The actual parameter count for each family/size is shown in the tables.
 - Attacker initializations: seeds 101, 102, and 103 for every family and size.
 - Reported training budget: 20,000 updates. The Transformer, CNN, and MLP arms completed all 15 attackers each; BiLSTM completed all sizes through 40k, while its 80k runs are not yet complete.
@@ -220,13 +223,13 @@ The result is useful for studying attacker optimization and capacity **condition
 
 #### Results after 20,000 attacker updates
 
-| Target size | CNN | MLP | BiLSTM | Transformer |
-| --- | ---: | ---: | ---: | ---: |
-| 5k | 55.86% (1.36 pp)<br>5,073 params | 55.73% (0.31 pp)<br>5,027 params | 52.27% (0.25 pp)<br>4,831 params | 53.36% (0.16 pp)<br>5,009 params |
-| 10k | 54.07% (0.29 pp)<br>10,253 params | 57.44% (2.28 pp)<br>9,968 params | 52.75% (0.11 pp)<br>10,133 params | 53.93% (0.48 pp)<br>10,585 params |
-| 20k | 53.94% (0.06 pp)<br>20,137 params | 60.28% (1.20 pp)<br>19,968 params | 52.94% (0.11 pp)<br>19,681 params | 53.72% (0.08 pp)<br>18,209 params |
-| 40k | 54.05% (0.16 pp)<br>39,757 params | 61.27% (1.09 pp)<br>40,152 params | 53.60% (0.16 pp)<br>39,883 params | 56.17% (0.39 pp)<br>39,601 params |
-| 80k | 53.88% (0.02 pp)<br>79,907 params | 63.83% (0.58 pp)<br>80,168 params | not yet complete<br>79,381 params | 55.19% (1.40 pp)<br>77,861 params |
+| Target size |                               CNN |                               MLP |                            BiLSTM |                       Transformer |
+| ----------- | --------------------------------: | --------------------------------: | --------------------------------: | --------------------------------: |
+| 5k          |  55.86% (1.36 pp)<br>5,073 params |  55.73% (0.31 pp)<br>5,027 params |  52.27% (0.25 pp)<br>4,831 params |  53.36% (0.16 pp)<br>5,009 params |
+| 10k         | 54.07% (0.29 pp)<br>10,253 params |  57.44% (2.28 pp)<br>9,968 params | 52.75% (0.11 pp)<br>10,133 params | 53.93% (0.48 pp)<br>10,585 params |
+| 20k         | 53.94% (0.06 pp)<br>20,137 params | 60.28% (1.20 pp)<br>19,968 params | 52.94% (0.11 pp)<br>19,681 params | 53.72% (0.08 pp)<br>18,209 params |
+| 40k         | 54.05% (0.16 pp)<br>39,757 params | 61.27% (1.09 pp)<br>40,152 params | 53.60% (0.16 pp)<br>39,883 params | 56.17% (0.39 pp)<br>39,601 params |
+| 80k         | 53.88% (0.02 pp)<br>79,907 params | 63.83% (0.58 pp)<br>80,168 params | not yet complete<br>79,381 params | 55.19% (1.40 pp)<br>77,861 params |
 
 Full-message accuracy was 0.0% in every completed condition. The validation-selected initialization also had 0.0% full-message accuracy in every completed condition; selection used validation L1 rather than test accuracy.
 
@@ -242,9 +245,41 @@ BiLSTM shows a modest, orderly improvement through 40k, from 52.27% to 53.60%. T
 
 The zero exact-message recovery rate is consistent with these being bit-level leaks rather than end-to-end plaintext recovery. Taken together, these results show a strong MLP capacity effect, little or no CNN capacity effect, a modest incomplete BiLSTM trend, and a weaker non-monotonic Transformer trend. They are encouraging because Bob passed the reliability check, but they still come from one frozen Alice-Bob pair and need replication across independently trained, reliable pairs before they support a general architecture-level claim.
 
+### 9. Repeated fresh-attacker size study after CNN-Eve Stage 1 training
+
+#### Setup
+
+- Pair seed: 7. Alice and Bob were synchronized while training against a ciphertext-only CNN Eve (`CNNEve(width=54)`, 39,757 parameters), then frozen. Bob passed the reliability check (`Bob reliability: {7: True}`).
+- Alice: CNN / `CryptCNN`, 40,609 parameters.
+- Bob: CNN / `CryptCNN`, 40,609 parameters.
+- Stage-1 Eve: ciphertext-only `CNNEve(width=54)`, 39,757 parameters.
+- Fresh attacker families: CNN, MLP, and Transformer. Each was tested at target sizes of 5k, 10k, 20k, 40k, and 80k parameters.
+- Attacker initializations: seeds 101, 102, and 103. Each attacker was evaluated after 5,000 and 20,000 updates.
+- Completion: all 45 attackers and all 90 expected test records completed. Metrics below are the mean held-out bit accuracy at 20,000 updates; parentheses contain the between-initialization standard deviation in percentage points.
+
+| Target size | CNN | MLP | Transformer |
+| --- | ---: | ---: | ---: |
+| 5k | 70.13% (3.44 pp)<br>5,073 params | 62.11% (0.19 pp)<br>5,027 params | 60.94% (0.14 pp)<br>5,009 params |
+| 10k | 66.87% (4.53 pp)<br>10,253 params | 65.10% (0.19 pp)<br>9,968 params | 61.50% (0.12 pp)<br>10,585 params |
+| 20k | 66.62% (4.17 pp)<br>20,137 params | 72.96% (1.02 pp)<br>19,968 params | 61.98% (0.58 pp)<br>18,209 params |
+| 40k | 67.18% (5.42 pp)<br>39,757 params | 79.58% (1.79 pp)<br>40,152 params | 62.80% (1.24 pp)<br>39,601 params |
+| 80k | 65.70% (4.75 pp)<br>79,907 params | 80.89% (3.16 pp)<br>80,168 params | 62.42% (1.13 pp)<br>77,861 params |
+
+At 20,000 updates, full-message accuracy remained 0.0% for CNN and Transformer attackers. MLP achieved 0.13% at 40k and 0.32% at 80k, so it recovered some complete 32-bit messages. Validation-selected initializations were chosen by validation L1, not test accuracy.
+
+![Fresh-attacker recovery after Stage 1 CNN-Eve training; error bars show initialization standard deviation](img/attacker_size_repeated_cnn_eve_20k.svg)
+
+#### Observation
+
+This CNN-Eve-trained pair is **substantially more vulnerable** to fresh attacks than the MLP-Eve-trained Week 3 pair. All attacker families exceed 60% bit accuracy after 20,000 updates. In particular, MLP rises sharply from 62.11% at 5k parameters to 80.89% at 80k: an 18.78 pp endpoint difference and a fitted gain of 5.21 pp per parameter doubling. The 40k and 80k MLPs also achieve nonzero exact-message recovery, making this much more than a weak bit-level leak.
+
+Fresh CNNs are also strong (65.70-70.13%) but do not improve monotonically with size. Their 5k-to-80k difference is -4.44 pp and the initialization standard deviations are large (3.44-5.42 pp), so this does not establish a negative CNN capacity effect; it shows that any CNN in this tested range can exploit the pair after sufficient training. Transformers are weaker than CNNs and MLPs but still consistently leak information (60.94-62.80%). Their capacity effect is modest: 0.43 pp per doubling and a 1.48 pp 5k-to-80k increase.
+
+The important comparison is qualitative, not causal: with one frozen pair for each Stage-1 Eve architecture, these data show that training against this CNN Eve did not yield a robust learned cipher and produced a pair that fresh MLPs break strongly. Repeating the matched comparison across multiple pair seeds is required before concluding that CNN-Eve Stage 1 training is intrinsically less robust than MLP-Eve Stage 1 training.
+
 ## Current interpretation
 
-Across the repeated 20,000-update study on a reliable pair, MLP has a strong size trend; Transformer has a weaker, non-monotonic trend; CNN is flat; and the currently incomplete BiLSTM results rise modestly through 40k. Architecture and capacity therefore interact; parameter count alone does not predict attack strength.
+Across the repeated 20,000-update studies on reliable pairs, attacker architecture, capacity, training time, and the Stage-1 Eve all interact. Against the MLP-Eve-trained pair, MLP has a strong size trend, Transformer has a weaker non-monotonic trend, CNN is flat, and the incomplete BiLSTM results rise modestly through 40k. Against the CNN-Eve-trained pair, MLP attacks scale sharply to 80.89% bit accuracy and recover some complete messages, while CNN and Transformer attacks are also well above chance at every tested size. Parameter count alone therefore does not predict attack strength or learned-cipher robustness.
 
 ## Reference
 

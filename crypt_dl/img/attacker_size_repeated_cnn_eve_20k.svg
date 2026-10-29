@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title description">
+  <title id="title">Fresh-attacker recovery after CNN-Eve Stage 1 training</title>
+  <desc id="description">Held-out bit accuracy by actual attacker parameter count after 20,000 updates. Alice and Bob were trained against a CNN Eve. Points are means over three attacker initializations and error bars are one standard deviation.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; fill: #1f2937; }
+    .title { font-size: 23px; font-weight: 600; }
+    .subtitle { font-size: 14px; fill: #4b5563; }
+    .legend { font-size: 14px; }
+    .tick { font-size: 13px; fill: #374151; }
+    .axis { font-size: 16px; fill: #1f2937; }
+    .grid { stroke: #d1d5db; stroke-width: 1; }
+    .vgrid { stroke: #e5e7eb; stroke-width: 1; }
+    .frame { fill: #ffffff; stroke: #9ca3af; stroke-width: 1; }
+    .chance { stroke: #4b5563; stroke-width: 1.5; stroke-dasharray: 7 5; }
+    .error { stroke-width: 2; }
+    .note { font-size: 13px; fill: #4b5563; }
+  </style>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="600" y="35" text-anchor="middle" class="title">Fresh-attacker recovery after CNN-Eve Stage 1 training</text>
+  <text x="600" y="59" text-anchor="middle" class="subtitle">Pair seed 7 · 20,000 attacker updates · points are means over three initializations · error bars are ±1 SD</text>
+  <line x1="340" y1="92" x2="368" y2="92" stroke="#3566b8" stroke-width="3"/><circle cx="354" cy="92" r="4" fill="#3566b8"/><text x="377" y="97" class="legend">CNN</text>
+<line x1="530" y1="92" x2="558" y2="92" stroke="#d76c2d" stroke-width="3"/><circle cx="544" cy="92" r="4" fill="#d76c2d"/><text x="567" y="97" class="legend">MLP</text>
+<line x1="720" y1="92" x2="748" y2="92" stroke="#c94454" stroke-width="3"/><circle cx="734" cy="92" r="4" fill="#c94454"/><text x="757" y="97" class="legend">Transformer</text>
+  <rect x="115" y="135" width="970" height="390" class="frame"/>
+  <line x1="115" y1="519.6575342465753" x2="1085" y2="519.6575342465753" class="grid"/><text x="101" y="524.6575342465753" text-anchor="end" class="tick">50</text>
+<line x1="115" y1="466.2328767123288" x2="1085" y2="466.2328767123288" class="grid"/><text x="101" y="471.2328767123288" text-anchor="end" class="tick">55</text>
+<line x1="115" y1="412.8082191780822" x2="1085" y2="412.8082191780822" class="grid"/><text x="101" y="417.8082191780822" text-anchor="end" class="tick">60</text>
+<line x1="115" y1="359.3835616438356" x2="1085" y2="359.3835616438356" class="grid"/><text x="101" y="364.3835616438356" text-anchor="end" class="tick">65</text>
+<line x1="115" y1="305.95890410958907" x2="1085" y2="305.95890410958907" class="grid"/><text x="101" y="310.95890410958907" text-anchor="end" class="tick">70</text>
+<line x1="115" y1="252.53424657534248" x2="1085" y2="252.53424657534248" class="grid"/><text x="101" y="257.5342465753425" text-anchor="end" class="tick">75</text>
+<line x1="115" y1="199.1095890410959" x2="1085" y2="199.1095890410959" class="grid"/><text x="101" y="204.1095890410959" text-anchor="end" class="tick">80</text>
+<line x1="115" y1="145.6849315068493" x2="1085" y2="145.6849315068493" class="grid"/><text x="101" y="150.6849315068493" text-anchor="end" class="tick">85</text>
+  <line x1="162.5923689428889" y1="135" x2="162.5923689428889" y2="525" class="vgrid"/><text x="162.5923689428889" y="549" text-anchor="middle" class="tick">5k</text>
+<line x1="381.31590889750146" y1="135" x2="381.31590889750146" y2="525" class="vgrid"/><text x="381.31590889750146" y="549" text-anchor="middle" class="tick">10k</text>
+<line x1="600.039448852114" y1="135" x2="600.039448852114" y2="525" class="vgrid"/><text x="600.039448852114" y="549" text-anchor="middle" class="tick">20k</text>
+<line x1="818.7629888067265" y1="135" x2="818.7629888067265" y2="525" class="vgrid"/><text x="818.7629888067265" y="549" text-anchor="middle" class="tick">40k</text>
+<line x1="1037.4865287613393" y1="135" x2="1037.4865287613393" y2="525" class="vgrid"/><text x="1037.4865287613393" y="549" text-anchor="middle" class="tick">80k</text>
+  <line x1="115" y1="519.6575342465753" x2="1085" y2="519.6575342465753" class="chance"/>
+  <polyline points="167.2,304.5 389.2,339.4 602.2,342.1 816.8,336.1 1037.1,351.9" fill="none" stroke="#3566b8" stroke-width="3"/>
+<line x1="167.16611123113944" y1="267.76882191780817" x2="167.16611123113944" y2="341.28328767123287" class="error" stroke="#3566b8"/>
+<line x1="162.16611123113944" y1="267.76882191780817" x2="172.16611123113944" y2="267.76882191780817" class="error" stroke="#3566b8"/>
+<line x1="162.16611123113944" y1="341.28328767123287" x2="172.16611123113944" y2="341.28328767123287" class="error" stroke="#3566b8"/>
+<circle cx="167.16611123113944" cy="304.5260547945205" r="5" fill="#3566b8"><title>CNN: 70.13% ± 3.44 pp</title></circle>
+<line x1="389.2000395253682" y1="290.96687671232866" x2="389.2000395253682" y2="387.7659452054794" class="error" stroke="#3566b8"/>
+<line x1="384.2000395253682" y1="290.96687671232866" x2="394.2000395253682" y2="290.96687671232866" class="error" stroke="#3566b8"/>
+<line x1="384.2000395253682" y1="387.7659452054794" x2="394.2000395253682" y2="387.7659452054794" class="error" stroke="#3566b8"/>
+<circle cx="389.2000395253682" cy="339.3664109589041" r="5" fill="#3566b8"><title>CNN: 66.87% ± 4.53 pp</title></circle>
+<line x1="602.1936061179222" y1="297.5327671232876" x2="602.1936061179222" y2="386.7070684931506" class="error" stroke="#3566b8"/>
+<line x1="597.1936061179222" y1="297.5327671232876" x2="607.1936061179222" y2="297.5327671232876" class="error" stroke="#3566b8"/>
+<line x1="597.1936061179222" y1="386.7070684931506" x2="607.1936061179222" y2="386.7070684931506" class="error" stroke="#3566b8"/>
+<circle cx="602.1936061179222" cy="342.11991780821916" r="5" fill="#3566b8"><title>CNN: 66.62% ± 4.17 pp</title></circle>
+<line x1="816.8401677551841" y1="278.1823561643836" x2="816.8401677551841" y2="394.0027397260274" class="error" stroke="#3566b8"/>
+<line x1="811.8401677551841" y1="278.1823561643836" x2="821.8401677551841" y2="278.1823561643836" class="error" stroke="#3566b8"/>
+<line x1="811.8401677551841" y1="394.0027397260274" x2="821.8401677551841" y2="394.0027397260274" class="error" stroke="#3566b8"/>
+<circle cx="816.8401677551841" cy="336.0925479452055" r="5" fill="#3566b8"><title>CNN: 67.18% ± 5.42 pp</title></circle>
+<line x1="1037.1194869134447" y1="301.19876712328755" x2="1037.1194869134447" y2="402.68210958904103" class="error" stroke="#3566b8"/>
+<line x1="1032.1194869134447" y1="301.19876712328755" x2="1042.1194869134447" y2="301.19876712328755" class="error" stroke="#3566b8"/>
+<line x1="1032.1194869134447" y1="402.68210958904103" x2="1042.1194869134447" y2="402.68210958904103" class="error" stroke="#3566b8"/>
+<circle cx="1037.1194869134447" cy="351.94043835616435" r="5" fill="#3566b8"><title>CNN: 65.70% ± 4.75 pp</title></circle>
+<polyline points="164.3,390.3 380.3,358.3 599.5,274.3 820.0,203.6 1038.1,189.6" fill="none" stroke="#d76c2d" stroke-width="3"/>
+<line x1="164.29176207849468" y1="388.2382191780822" x2="164.29176207849468" y2="392.33054794520547" class="error" stroke="#d76c2d"/>
+<line x1="159.29176207849468" y1="388.2382191780822" x2="169.29176207849468" y2="388.2382191780822" class="error" stroke="#d76c2d"/>
+<line x1="159.29176207849468" y1="392.33054794520547" x2="169.29176207849468" y2="392.33054794520547" class="error" stroke="#d76c2d"/>
+<circle cx="164.29176207849468" cy="390.28438356164384" r="5" fill="#d76c2d"><title>MLP: 62.11% ± 0.19 pp</title></circle>
+<line x1="380.3045254470117" y1="356.29241095890416" x2="380.3045254470117" y2="360.3291780821919" class="error" stroke="#d76c2d"/>
+<line x1="375.3045254470117" y1="356.29241095890416" x2="385.3045254470117" y2="356.29241095890416" class="error" stroke="#d76c2d"/>
+<line x1="375.3045254470117" y1="360.3291780821919" x2="385.3045254470117" y2="360.3291780821919" class="error" stroke="#d76c2d"/>
+<circle cx="380.3045254470117" cy="358.31079452054803" r="5" fill="#d76c2d"><title>MLP: 65.10% ± 0.19 pp</title></circle>
+<line x1="599.5341623287455" y1="263.3954794520547" x2="599.5341623287455" y2="285.19915068493157" class="error" stroke="#d76c2d"/>
+<line x1="594.5341623287455" y1="263.3954794520547" x2="604.5341623287455" y2="263.3954794520547" class="error" stroke="#d76c2d"/>
+<line x1="594.5341623287455" y1="285.19915068493157" x2="604.5341623287455" y2="285.19915068493157" class="error" stroke="#d76c2d"/>
+<circle cx="599.5341623287455" cy="274.29731506849316" r="5" fill="#d76c2d"><title>MLP: 72.96% ± 1.02 pp</title></circle>
+<line x1="819.9598114734958" y1="184.46268493150694" x2="819.9598114734958" y2="222.71687671232883" class="error" stroke="#d76c2d"/>
+<line x1="814.9598114734958" y1="184.46268493150694" x2="824.9598114734958" y2="184.46268493150694" class="error" stroke="#d76c2d"/>
+<line x1="814.9598114734958" y1="222.71687671232883" x2="824.9598114734958" y2="222.71687671232883" class="error" stroke="#d76c2d"/>
+<circle cx="819.9598114734958" cy="203.58978082191788" r="5" fill="#d76c2d"><title>MLP: 79.58% ± 1.79 pp</title></circle>
+<line x1="1038.1484918126298" y1="155.82065753424655" x2="1038.1484918126298" y2="223.41567123287672" class="error" stroke="#d76c2d"/>
+<line x1="1033.1484918126298" y1="155.82065753424655" x2="1043.1484918126298" y2="155.82065753424655" class="error" stroke="#d76c2d"/>
+<line x1="1033.1484918126298" y1="223.41567123287672" x2="1043.1484918126298" y2="223.41567123287672" class="error" stroke="#d76c2d"/>
+<circle cx="1038.1484918126298" cy="189.61816438356163" r="5" fill="#d76c2d"><title>MLP: 80.89% ± 3.16 pp</title></circle>
+<polyline points="163.2,402.7 399.3,396.7 570.4,391.6 815.6,382.9 1028.9,387.0" fill="none" stroke="#c94454" stroke-width="3"/>
+<line x1="163.15985082183295" y1="401.2129315068493" x2="163.15985082183295" y2="404.28378082191784" class="error" stroke="#c94454"/>
+<line x1="158.15985082183295" y1="401.2129315068493" x2="168.15985082183295" y2="401.2129315068493" class="error" stroke="#c94454"/>
+<line x1="158.15985082183295" y1="404.28378082191784" x2="168.15985082183295" y2="404.28378082191784" class="error" stroke="#c94454"/>
+<circle cx="163.15985082183295" cy="402.7483561643836" r="5" fill="#c94454"><title>Transformer: 60.94% ± 0.14 pp</title></circle>
+<line x1="399.25589128032067" y1="395.4558904109589" x2="399.25589128032067" y2="398.03523287671226" class="error" stroke="#c94454"/>
+<line x1="394.25589128032067" y1="395.4558904109589" x2="404.25589128032067" y2="395.4558904109589" class="error" stroke="#c94454"/>
+<line x1="394.25589128032067" y1="398.03523287671226" x2="404.25589128032067" y2="398.03523287671226" class="error" stroke="#c94454"/>
+<circle cx="399.25589128032067" cy="396.7455616438356" r="5" fill="#c94454"><title>Transformer: 61.50% ± 0.12 pp</title></circle>
+<line x1="570.4355883925574" y1="385.44090410958904" x2="570.4355883925574" y2="397.85679452054796" class="error" stroke="#c94454"/>
+<line x1="565.4355883925574" y1="385.44090410958904" x2="575.4355883925574" y2="385.44090410958904" class="error" stroke="#c94454"/>
+<line x1="565.4355883925574" y1="397.85679452054796" x2="575.4355883925574" y2="397.85679452054796" class="error" stroke="#c94454"/>
+<circle cx="570.4355883925574" cy="391.6488493150685" r="5" fill="#c94454"><title>Transformer: 61.98% ± 0.58 pp</title></circle>
+<line x1="815.599559963431" y1="369.71054794520546" x2="815.599559963431" y2="396.1429315068493" class="error" stroke="#c94454"/>
+<line x1="810.599559963431" y1="369.71054794520546" x2="820.599559963431" y2="369.71054794520546" class="error" stroke="#c94454"/>
+<line x1="810.599559963431" y1="396.1429315068493" x2="820.599559963431" y2="396.1429315068493" class="error" stroke="#c94454"/>
+<circle cx="815.599559963431" cy="382.92673972602745" r="5" fill="#c94454"><title>Transformer: 62.80% ± 1.24 pp</title></circle>
+<line x1="1028.9346294947381" y1="374.8393150684932" x2="1028.9346294947381" y2="399.0620547945205" class="error" stroke="#c94454"/>
+<line x1="1023.9346294947381" y1="374.8393150684932" x2="1033.9346294947381" y2="374.8393150684932" class="error" stroke="#c94454"/>
+<line x1="1023.9346294947381" y1="399.0620547945205" x2="1033.9346294947381" y2="399.0620547945205" class="error" stroke="#c94454"/>
+<circle cx="1028.9346294947381" cy="386.9506849315068" r="5" fill="#c94454"><title>Transformer: 62.42% ± 1.13 pp</title></circle>
+  <text x="1076" y="510.6575342465753" text-anchor="end" class="note">Chance = 50%</text>
+  <text x="40" y="330" text-anchor="middle" class="axis" transform="rotate(-90 40 330)">Held-out bit accuracy (%)</text>
+  <text x="600" y="610" text-anchor="middle" class="axis">Actual attacker parameters (log scale)</text>
+</svg>
