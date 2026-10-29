@@ -201,9 +201,50 @@ The effect is architecture-specific. CNN accuracy is essentially identical acros
 
 The result is useful for studying attacker optimization and capacity **conditional on this frozen pair**, but it is not a valid successful-cryptography result: Bob's training became unstable after initially reaching very low reconstruction error and finished with only 87.5% bit accuracy. It also comes from one Alice-Bob pair. Therefore, the strongest defensible conclusion is: **attacker size can matter substantially, but only after sufficient training and only for some architectures; this interrupted run does not establish that the pattern generalizes to reliably synchronized pairs.**
 
+## Week 3
+
+**What is it about?** Completing the missing Transformer arm of the repeated attacker-size study, this time against a successfully synchronized frozen Alice-Bob pair.
+
+**What results did we want?** Determine whether attacker capacity improves held-out plaintext-bit recovery after 20,000 training updates, while separating the effect of capacity from attacker initialization.
+
+### 8. Repeated fresh-attacker size study
+
+#### Setup
+
+- Pair seed: 7. Bob passed the reliability check (`Bob reliability: {7: True}`).
+- Fresh attacker families: CNN, MLP, BiLSTM, and Transformer, each targeted at 5k, 10k, 20k, 40k, and 80k parameters. The actual parameter count for each family/size is shown in the tables.
+- Attacker initializations: seeds 101, 102, and 103 for every family and size.
+- Reported training budget: 20,000 updates. The Transformer, CNN, and MLP arms completed all 15 attackers each; BiLSTM completed all sizes through 40k, while its 80k runs are not yet complete.
+- Overall status at the reported checkpoint: results are available for 57 of 60 expected family/size/initialization conditions. The three missing conditions are the 80k BiLSTM attacker initializations.
+- Metrics below are mean held-out bit accuracy over attacker initializations. The value in parentheses is the between-initialization standard deviation in percentage points; `n=1` means no standard deviation is available. Chance bit accuracy is 50%; full-message accuracy is the fraction of complete 32-bit messages recovered exactly.
+
+#### Results after 20,000 attacker updates
+
+| Target size | CNN | MLP | BiLSTM | Transformer |
+| --- | ---: | ---: | ---: | ---: |
+| 5k | 55.86% (1.36 pp)<br>5,073 params | 55.73% (0.31 pp)<br>5,027 params | 52.27% (0.25 pp)<br>4,831 params | 53.36% (0.16 pp)<br>5,009 params |
+| 10k | 54.07% (0.29 pp)<br>10,253 params | 57.44% (2.28 pp)<br>9,968 params | 52.75% (0.11 pp)<br>10,133 params | 53.93% (0.48 pp)<br>10,585 params |
+| 20k | 53.94% (0.06 pp)<br>20,137 params | 60.28% (1.20 pp)<br>19,968 params | 52.94% (0.11 pp)<br>19,681 params | 53.72% (0.08 pp)<br>18,209 params |
+| 40k | 54.05% (0.16 pp)<br>39,757 params | 61.27% (1.09 pp)<br>40,152 params | 53.60% (0.16 pp)<br>39,883 params | 56.17% (0.39 pp)<br>39,601 params |
+| 80k | 53.88% (0.02 pp)<br>79,907 params | 63.83% (0.58 pp)<br>80,168 params | not yet complete<br>79,381 params | 55.19% (1.40 pp)<br>77,861 params |
+
+Full-message accuracy was 0.0% in every completed condition. The validation-selected initialization also had 0.0% full-message accuracy in every completed condition; selection used validation L1 rather than test accuracy.
+
+![Week 3 fresh-attacker recovery after 20,000 updates; error bars show initialization standard deviation](img/attacker_size_repeated_reliable_20k.svg)
+
+#### Observation
+
+The new CNN result is essentially flat once the anomalously variable 5k point is set aside: 10k through 80k CNNs are all about 53.9-54.1%. Its fitted capacity slope is -0.40 pp per doubling, but this is driven by the 5k mean of 55.86% (SD 1.36 pp), rather than evidence that smaller CNNs are reliably better. More CNN parameters do not help in this range.
+
+MLP is the clear exception. It rises from 55.73% at 5k parameters to 63.83% at 80k (8.10 pp; fitted slope 2.00 pp per doubling). The larger MLPs have some initialization variation, especially 10k (2.28 pp), but the overall capacity pattern is strong.
+
+BiLSTM shows a modest, orderly improvement through 40k, from 52.27% to 53.60%. The 80k BiLSTM is incomplete, so no endpoint difference or fitted size effect should be reported yet. Transformers learn a **small but reproducible above-chance bit-level attack**, not a strong plaintext decoder. Their fitted slope is 0.61 pp per doubling and 80k is 1.83 pp above 5k. The curve remains non-monotonic: 40k is best at 56.17%, but 80k drops to 55.19% with the largest initialization variation (1.40 pp).
+
+The zero exact-message recovery rate is consistent with these being bit-level leaks rather than end-to-end plaintext recovery. Taken together, these results show a strong MLP capacity effect, little or no CNN capacity effect, a modest incomplete BiLSTM trend, and a weaker non-monotonic Transformer trend. They are encouraging because Bob passed the reliability check, but they still come from one frozen Alice-Bob pair and need replication across independently trained, reliable pairs before they support a general architecture-level claim.
+
 ## Current interpretation
 
-Across the completed studies, a 5,000-step attack budget is not enough to conclude that attacker size has no effect. The partial repeated A100 study shows a strong MLP size trend at 20,000 steps while CNN remains flat and BiLSTM changes only modestly. Architecture, capacity, and optimization time therefore interact; parameter count alone does not predict attack strength.
+Across the repeated 20,000-update study on a reliable pair, MLP has a strong size trend; Transformer has a weaker, non-monotonic trend; CNN is flat; and the currently incomplete BiLSTM results rise modestly through 40k. Architecture and capacity therefore interact; parameter count alone does not predict attack strength.
 
 ## Reference
 
