@@ -6,7 +6,7 @@ The purpose is to test **attacker-architecture overfitting**: does a learned cip
 
 ## Results and figure naming
 
-The complete experimental record is in [RESULTS.md](RESULTS.md). Attacker-size figures use the convention `week<week>_attacker_size_stage1_<eve>[_partial]_seed<seed>_<updates>_updates.svg`, where `stage1_<eve>` identifies the Eve used while Alice and Bob were synchronized, and `partial` marks an interrupted study.
+The complete experimental record is in [RESULTS.md](RESULTS.md). Attacker-size figures use the convention `week<week>_attacker_size_stage1_<eve>[_partial]_seed<seed>_<updates>_updates.svg`, where `stage1_<eve>` identifies the Eve used while Alice and Bob were synchronized and `partial` marks an interrupted study.
 
 Regenerate the consistently styled figures with `node scripts/plot_attacker_size_figures.js`. Each one uses the same 50–85% y-axis for direct comparison.
 
@@ -16,6 +16,7 @@ Regenerate the consistently styled figures with `node scripts/plot_attacker_size
 | `week2_attacker_size_stage1_mlp_partial_seed7_20k_updates.svg` | Partial repeated sweep after Stage-1 MLP-Eve training; Bob was unreliable. |
 | `week3_attacker_size_stage1_mlp_seed7_20k_updates.svg` | Reliable repeated sweep after Stage-1 MLP-Eve training. |
 | `week3_attacker_size_stage1_cnn_seed7_20k_updates.svg` | Reliable repeated sweep after Stage-1 CNN-Eve training. |
+| `week3_attacker_size_stage1_transformer_seed7_20k_updates.svg` | Repeated sweep after Stage-1 Transformer-Eve training; Bob meets the project's 96% reliability criterion. |
 
 ## Preliminary, unmatched-capacity pilot results
 

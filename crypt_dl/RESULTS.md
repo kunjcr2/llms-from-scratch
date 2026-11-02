@@ -277,9 +277,42 @@ Fresh CNNs are also strong (65.70-70.13%) but do not improve monotonically with 
 
 The important comparison is qualitative, not causal: with one frozen pair for each Stage-1 Eve architecture, these data show that training against this CNN Eve did not yield a robust learned cipher and produced a pair that fresh MLPs break strongly. Repeating the matched comparison across multiple pair seeds is required before concluding that CNN-Eve Stage 1 training is intrinsically less robust than MLP-Eve Stage 1 training.
 
+### 10. Repeated fresh-attacker size study after Transformer-Eve Stage 1 training
+
+#### Setup
+
+- Pair seed: 7. Alice and Bob were synchronized against a ciphertext-only Transformer Eve (`TransformerEve(width=48)`, 39,601 parameters), then frozen.
+- Alice: CNN / `CryptCNN`, 40,609 parameters.
+- Bob: CNN / `CryptCNN`, 40,609 parameters.
+- Stage-1 Eve: ciphertext-only two-layer, four-head `TransformerEve(width=48)`, 39,601 parameters.
+- Fresh attacker families: CNN, MLP, and Transformer. Each was tested at target sizes of 5k, 10k, 20k, 40k, and 80k parameters.
+- Attacker initializations: seeds 101, 102, and 103. The three independent seeds were trained concurrently on the A100, but each retained its own model, optimizer, batch size, data stream, and update budget.
+- Completion: all 45 attackers and all 90 expected test records completed. Metrics below are the mean held-out bit accuracy at 20,000 updates; parentheses contain the between-initialization standard deviation in percentage points.
+- **Reliability criterion:** the original notebook reported `Bob reliability: {7: False}` because it used a 99% threshold. The project criterion is now **96% Bob bit accuracy**; this pair meets that threshold and is included as a successful communication run, while its lower Bob accuracy should still be kept in mind when comparing it with the near-perfect Week 3 pairs.
+
+| Target size |                               CNN |                               MLP |                       Transformer |
+| ----------- | --------------------------------: | --------------------------------: | --------------------------------: |
+| 5k          |  55.61% (0.00 pp)<br>5,073 params |  55.60% (0.01 pp)<br>5,027 params |  54.99% (0.11 pp)<br>5,009 params |
+| 10k         | 57.69% (3.63 pp)<br>10,253 params | 56.39% (1.38 pp)<br>9,968 params | 55.23% (0.08 pp)<br>10,585 params |
+| 20k         | 56.17% (1.01 pp)<br>20,137 params | 57.54% (1.99 pp)<br>19,968 params | 55.33% (0.03 pp)<br>18,209 params |
+| 40k         | 57.25% (2.92 pp)<br>39,757 params | 62.40% (2.23 pp)<br>40,152 params | 55.49% (4.75 pp)<br>39,601 params |
+| 80k         | 57.32% (3.05 pp)<br>79,907 params | 71.10% (6.10 pp)<br>80,168 params | 56.64% (6.15 pp)<br>77,861 params |
+
+At 20,000 updates, full-message accuracy was 0.0% for CNN and Transformer attackers and for MLP through 40k. The 80k MLP mean reached 0.02% full-message accuracy. At the 5,000-update checkpoint, all three attacker families remained near 54-56% bit accuracy; the large MLP advantage emerged with the additional training budget.
+
+![Week 3 attacker-size study after Stage-1 Transformer-Eve training, pair seed 7, 20,000 attacker updates; error bars show initialization standard deviation](img/week3_attacker_size_stage1_transformer_seed7_20k_updates.svg)
+
+#### Observation
+
+MLP is again the strongest fresh attacker: it rises from 55.60% at 5k parameters to 71.10% at 80k, a 15.50 percentage-point endpoint difference and a fitted gain of 3.70 pp per parameter doubling. However, the 80k MLP also has substantial initialization variability (6.10 pp), so this one-pair result supports a capacity-sensitive attack rather than a precise effect-size estimate.
+
+CNNs improve only modestly after 20,000 updates (55.61% to 57.32%; fitted slope 0.30 pp per doubling) and are non-monotonic. Transformers remain near 55-57% on average, with especially large variability at 40k and 80k (4.75 and 6.15 pp), so their small positive size slope (0.36 pp per doubling) is not strong evidence of stable scaling.
+
+Bob meets the project's revised 96% communication threshold, so this is a successful Transformer-Eve Stage-1 run under that stated criterion. Its Bob accuracy is nonetheless lower than in the earlier near-perfect Week 3 pairs, so comparisons of attacker recovery across Stage-1 Eves should be read as preliminary rather than as a precise architecture ranking. Replication across pair seeds remains necessary.
+
 ## Current interpretation
 
-Across the repeated 20,000-update studies on reliable pairs, attacker architecture, capacity, training time, and the Stage-1 Eve all interact. Against the MLP-Eve-trained pair, MLP has a strong size trend, Transformer has a weaker non-monotonic trend, CNN is flat, and the incomplete BiLSTM results rise modestly through 40k. Against the CNN-Eve-trained pair, MLP attacks scale sharply to 80.89% bit accuracy and recover some complete messages, while CNN and Transformer attacks are also well above chance at every tested size. Parameter count alone therefore does not predict attack strength or learned-cipher robustness.
+Across the repeated 20,000-update studies on pairs meeting the project's stated reliability criterion, attacker architecture, capacity, training time, and the Stage-1 Eve all interact. Against the MLP-Eve-trained pair, MLP has a strong size trend, Transformer has a weaker non-monotonic trend, CNN is flat, and the incomplete BiLSTM results rise modestly through 40k. Against the CNN-Eve-trained pair, MLP attacks scale sharply to 80.89% bit accuracy and recover some complete messages, while CNN and Transformer attacks are also well above chance at every tested size. Against the Transformer-Eve-trained pair, MLP again scales strongly, while CNN and Transformer attacks are weaker and variable; Bob met the 96% threshold but was less accurate than the earlier Week 3 pairs. Parameter count alone therefore does not predict attack strength or learned-cipher robustness.
 
 ## Reference
 
