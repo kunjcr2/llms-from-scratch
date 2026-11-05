@@ -6,24 +6,24 @@ Previous experiments, measurements, and figures are in [RESULTS.md](RESULTS.md) 
 
 ## CNN+MLP Eve experiment
 
-[`scripts/hybrid_eve_mlp_study.py`](scripts/hybrid_eve_mlp_study.py) trains separate Alice–Bob pairs against a CNN Eve, an MLP Eve, or both together. After training, it freezes each pair and tests fresh **MLP attackers only** at roughly 5k and 80k parameters. The default study uses three pair seeds and three attacker seeds. A pair is attacked only if Bob reaches at least 99% bit accuracy on held-out validation and test messages.
+[`scripts/hybrid_eve_mlp_study.ipynb`](scripts/hybrid_eve_mlp_study.ipynb) trains separate Alice–Bob pairs against a CNN Eve, an MLP Eve, or both together. After training, it freezes each pair and tests fresh **MLP attackers only** at roughly 5k and 80k parameters. Each run uses attacker seeds 101, 102, and 103. The notebook attacks a pair only if Bob meets `BOB_MIN` on held-out validation and test messages; the notebook default is 99%.
 
-The script appends configuration, pair, attack, and summary records to a JSONL file. Each condition gets four total Eve updates per Alice–Bob update. These are new baselines; earlier Week 3 runs used two Eve updates.
+The notebook appends configuration, pair, attack, and summary records to a JSONL file. Each condition gets four total Eve updates per Alice–Bob update, split two per Eve in the hybrid condition. These are new baselines; earlier Week 3 runs used two Eve updates.
 
-## Run with Colab CLI
+### Seed 7 results
 
-Use the [Google Colab CLI](https://github.com/googlecolab/google-colab-cli) from Linux, macOS, or WSL on Windows. Run one condition and pair seed per session. This WSL example runs `hybrid` with seed `7` (on Linux or macOS, change the `cd` path):
+[`results/hybrid_seed7.jsonl`](results/hybrid_seed7.jsonl) combines the hybrid run and the CNN/MLP run. Both runs set `BOB_MIN = 0.95`. The table gives held-out test accuracy; attacker values are means across three fresh starts after 20,000 updates.
 
-```bash
-cd /mnt/c/Users/kunjs/OneDrive/Projects/llms-from-scratch
-mkdir -p crypt_dl/runs
-colab run --gpu A100 --keep -s crypt-hybrid-7 --timeout 14400 \
-  crypt_dl/scripts/hybrid_eve_mlp_study.py \
-  --conditions hybrid --pair-seeds 7 \
-  --output /content/crypt-hybrid-7.jsonl
-colab download -s crypt-hybrid-7 \
-  /content/crypt-hybrid-7.jsonl crypt_dl/runs/crypt-hybrid-7.jsonl
-colab stop -s crypt-hybrid-7
-```
+| Stage-1 Eve | Bob bit accuracy | Bob full-message accuracy | Fresh 5k MLP bit accuracy | Fresh 80k MLP bit accuracy |
+| --- | ---: | ---: | ---: | ---: |
+| Hybrid CNN + MLP | 96.08% | 28.22% | 56.94% | 67.39% |
+| CNN | 50.01% | 0% | skipped | skipped |
+| MLP | 99.98% | 99.53% | 56.42% | 67.90% |
 
-Repeat for `cnn`, `mlp`, and `hybrid` with seeds `7`, `8`, and `9`, changing the session and output names. Download the JSONL before stopping the session, including if the run ended early. `--keep` leaves the runtime allocated until `colab stop`.
+The CNN pair did not learn reliable communication and therefore was not attacked. The hybrid pair meets the project's 96% bit-accuracy criterion but falls short of the notebook's 99% default and has much lower full-message accuracy than the MLP pair. These are one-pair-per-condition results; repeat with additional pair seeds before drawing a general comparison.
+
+## Run in Google Colab
+
+Open the notebook in Colab and select an A100 or L4 GPU runtime. In its first code cell, set `CONDITIONS` to `("cnn",)`, `("mlp",)`, or `("hybrid",)` and `PAIR_SEEDS` to one seed. Set `BOB_MIN` explicitly and keep it consistent across comparable runs. Change `RUN_NAME` for each run, then run the cells from top to bottom. The notebook starts with `("hybrid",)` and seed `7` as an example.
+
+Results are appended to `/content/<RUN_NAME>.jsonl`. Use the last cell to download them, including after an interruption while the runtime is still connected. The first cell selects batch size 16,384 on A100 and 8,192 on L4; keep it consistent across the conditions you compare.
