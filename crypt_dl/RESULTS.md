@@ -310,9 +310,44 @@ CNNs improve only modestly after 20,000 updates (55.61% to 57.32%; fitted slope 
 
 Bob meets the project's revised 96% communication threshold, so this is a successful Transformer-Eve Stage-1 run under that stated criterion. Its Bob accuracy is nonetheless lower than in the earlier near-perfect Week 3 pairs, so comparisons of attacker recovery across Stage-1 Eves should be read as preliminary rather than as a precise architecture ranking. Replication across pair seeds remains necessary.
 
+## Week 4
+
+### 11. Hybrid CNN+MLP Eve versus single-Eve controls (pair seed 7)
+
+#### Setup
+
+- Source: [combined seed-7 JSONL](results/hybrid_seed7.jsonl). It contains two configuration records because the hybrid condition and the two controls were run in separate Colab sessions.
+- Alice and Bob: 32-bit `CryptCNN` models with 40,609 parameters each, initialized with the same pair seed 7 for every condition. Messages and keys were freshly sampled during training and evaluation.
+- Stage 1: 15,000 Alice/Bob updates, batch size 16,384 on an A100, privacy weight 8.0, and four total Eve updates per Alice/Bob update. CNN-only and MLP-only each gave all four updates to one Eve; hybrid split them two per Eve and optimized Alice against the Eve with the lower reconstruction error on each batch.
+- Fresh attackers: ciphertext-only MLPs with 5,027 or 80,168 parameters, each initialized with seeds 101, 102, and 103. Each was evaluated after 5,000 and 20,000 updates on held-out messages.
+- The executed runs used `BOB_MIN = 0.95` as the attack gate. The project's 96% Bob bit-accuracy criterion is applied separately when interpreting the results; the notebook's checked-in default is 99%.
+
+#### Bob communication
+
+| Stage-1 Eve | Bob validation bit accuracy | Bob test bit accuracy | Bob test full-message accuracy | Fresh attack status |
+| --- | ---: | ---: | ---: | --- |
+| Hybrid CNN + MLP | 96.10% | 96.08% | 28.22% | Completed |
+| CNN only | 49.89% | 50.01% | 0.00% | Skipped: Bob failed |
+| MLP only | 99.98% | 99.98% | 99.53% | Completed |
+
+The hybrid pair meets the 96% bit criterion on validation and test, but only 28.22% of complete 32-bit messages were correct. The MLP-only pair communicates almost perfectly. The CNN-only pair remained at chance-level decoding, so its absence of attack results is a failed communication run, not evidence of privacy.
+
+#### Fresh MLP attacks
+
+Held-out test bit accuracy is the mean over three attacker initializations (`n = 3`); parentheses give the sample standard deviation in percentage points. All completed fresh attackers had 0% full-message accuracy.
+
+| Stage-1 Eve | Fresh MLP size | After 5,000 updates | After 20,000 updates |
+| --- | ---: | ---: | ---: |
+| Hybrid CNN + MLP | 5k | 55.70% (0.69 pp) | 56.94% (1.22 pp) |
+| Hybrid CNN + MLP | 80k | 61.92% (2.48 pp) | 67.39% (1.15 pp) |
+| MLP only | 5k | 56.29% (0.03 pp) | 56.42% (0.04 pp) |
+| MLP only | 80k | 61.08% (2.28 pp) | 67.90% (1.77 pp) |
+
+At 20,000 updates, the 80k MLP exceeds the 5k MLP by 10.45 percentage points against hybrid and 11.48 points against MLP-only. The 80k means differ by just 0.51 points between the two conditions, while Bob's full-message accuracy differs sharply. This one-seed experiment therefore shows a capacity-sensitive bit leak in both successful pairs, with no demonstrated hybrid privacy advantage. Three attacker starts measure variation in the attack on each frozen pair; they do not replicate Alice/Bob training. Further pair seeds are needed to estimate the frequency of communication failure and any condition-level effect.
+
 ## Current interpretation
 
-Across the repeated 20,000-update studies on pairs meeting the project's stated reliability criterion, attacker architecture, capacity, training time, and the Stage-1 Eve all interact. Against the MLP-Eve-trained pair, MLP has a strong size trend, Transformer has a weaker non-monotonic trend, CNN is flat, and the incomplete BiLSTM results rise modestly through 40k. Against the CNN-Eve-trained pair, MLP attacks scale sharply to 80.89% bit accuracy and recover some complete messages, while CNN and Transformer attacks are also well above chance at every tested size. Against the Transformer-Eve-trained pair, MLP again scales strongly, while CNN and Transformer attacks are weaker and variable; Bob met the 96% threshold but was less accurate than the earlier Week 3 pairs. Parameter count alone therefore does not predict attack strength or learned-cipher robustness.
+Across the repeated 20,000-update studies on pairs meeting the project's stated reliability criterion, attacker architecture, capacity, training time, and the Stage-1 Eve all interact. Against the MLP-Eve-trained pair, MLP has a strong size trend, Transformer has a weaker non-monotonic trend, CNN is flat, and the incomplete BiLSTM results rise modestly through 40k. Against the CNN-Eve-trained pair, MLP attacks scale sharply to 80.89% bit accuracy and recover some complete messages, while CNN and Transformer attacks are also well above chance at every tested size. Against the Transformer-Eve-trained pair, MLP again scales strongly, while CNN and Transformer attacks are weaker and variable; Bob met the 96% threshold but was less accurate than the earlier near-perfect Week 3 pairs. The new seed-7 hybrid comparison shows similarly strong fresh 80k MLP bit recovery against hybrid and MLP-only training, while CNN-only training failed to produce a communicating pair. Parameter count alone therefore does not predict attack strength or learned-cipher robustness, and the hybrid result does not yet establish a condition-level benefit.
 
 ## Reference
 
