@@ -360,6 +360,28 @@ The CNN-only condition behaved differently. Bob failed to communicate on seeds 7
 
 The defensible conclusion is that this CNN-only training setup is **unreliable as a communication baseline and ineffective as a privacy defense in its one successful run**. The capacity effect for fresh MLP attackers is more repeatable across MLP-only and hybrid pairs, while any advantage of hybrid Stage-1 training remains uncertain with three pair seeds.
 
+### 12. MLP-Eve-trained pair attacked with XGBoost (small follow-up, seeds 7–9)
+
+#### Setup
+
+- Source: [consolidated follow-up JSON](results/mlp_eve_xgboost_followup.json). It contains the original Stage-1 and Stage-2 records for all three seeds and base64-encoded, SHA-256-checked Alice/Bob `.pt` checkpoints. The [Colab notebook](scripts/mlp_eve_xgboost_followup.ipynb) generated the runs.
+- Alice/Bob: 32-bit `CryptCNN` models (40,609 parameters each), trained against a ciphertext-only `MLPEve(32 → 133 → 218 → 32)` with 40,609 parameters. Seeds 7, 8, and 9 each got 10,000 Alice/Bob updates, batch size 4,096, two Eve updates per Alice/Bob update, privacy weight 8, and learning rate 0.001. Fresh random 32-bit messages and keys were sampled during training.
+- Stage 2: Alice was frozen. Each pair generated 32,768 new ciphertext/plaintext training rows, 8,192 validation rows, and 16,384 separate held-out test rows with fresh random messages and keys. Attackers received ciphertext only; Bob received ciphertext and key. The split RNG seeds were `400000 + pair_seed`, `500000 + pair_seed`, and `600000 + pair_seed` for train, validation, and test.
+- XGBoost: 32 independent binary bit classifiers, each with 150 histogram trees of depth 4, learning rate 0.08, row and column subsampling 0.9, and minimum child weight 5. Bit `i` used seed `500000 + 32 × pair_seed + i`. A fresh 40,609-parameter MLP used the same fixed training rows, 5,000 minibatch updates, and validation-selected checkpoint. The optional random forest was not run.
+- Runtime: on an NVIDIA A100, Stage 1 took about 140 seconds per pair; fitting all 32 XGBoost classifiers took 17.5–17.7 seconds and the MLP took 10.0–10.2 seconds per pair. These are measured run times, not estimates. Bob passed the project's 96% validation and test bit-accuracy criterion for all three pairs.
+
+#### Held-out test results
+
+| Pair seed | Bob bits | Bob whole messages | XGBoost bits | XGBoost whole messages | Fresh MLP bits | Fresh MLP whole messages |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 7 | 99.98% | 99.61% | 53.60% | 0% | 54.26% | 0% |
+| 8 | 99.96% | 98.89% | 53.95% | 0% | 54.37% | 0% |
+| 9 | 99.99% | 99.55% | 52.58% | 0% | 52.96% | 0% |
+
+#### Interpretation
+
+The communication part worked well, but the attacks **did not work especially well** in this small pilot. XGBoost recovered only about 52.6–54.0% of plaintext bits, slightly below the same-data MLP's 53.0–54.4%, and neither attacker recovered any complete 32-bit test message. Both are still above the 50% bit-guessing baseline, so this does not establish secrecy. The Stage-2 dataset, 150 shallow trees per bit, and finite-data MLP training are much smaller than earlier 20,000-update fresh-attacker studies; their scores should not be treated as a matched comparison with those runs or as the strongest possible attacks. The saved checkpoints permit a larger attack without retraining Alice and Bob.
+
 ## Current interpretation
 
 Across the repeated 20,000-update studies on pairs meeting the project's stated reliability criterion, attacker architecture, capacity, training time, and the Stage-1 Eve all interact. Against the MLP-Eve-trained Week 3 pair, MLP has a strong size trend, Transformer a weaker non-monotonic trend, CNN is flat, and the incomplete BiLSTM results rise modestly through 40k. Against the CNN-Eve-trained Week 3 pair, MLP attacks scale sharply to 80.89% bit accuracy and recover some complete messages, while CNN and Transformer attacks are also above chance. Against the Transformer-Eve-trained pair, MLP again scales strongly, while CNN and Transformer attacks are weaker and variable. In the new three-seed CNN/MLP/hybrid comparison, fresh 80k MLPs outperform 5k MLPs on every successful MLP-only and hybrid pair; hybrid shows no consistent privacy benefit. CNN-only fails communication on two seeds, and the third pair is fully broken by both fresh MLP sizes. These studies support a repeatable MLP capacity effect under several Stage-1 conditions, while the performance of any particular training condition still requires careful checks of Bob's communication and attacker generalization.
