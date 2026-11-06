@@ -312,42 +312,57 @@ Bob meets the project's revised 96% communication threshold, so this is a succes
 
 ## Week 4
 
-### 11. Hybrid CNN+MLP Eve versus single-Eve controls (pair seed 7)
+### 11. Hybrid CNN+MLP Eve versus single-Eve controls (pair seeds 7–9)
 
 #### Setup
 
-- Source: [combined seed-7 JSONL](results/hybrid_seed7.jsonl). It contains two configuration records because the hybrid condition and the two controls were run in separate Colab sessions.
-- Alice and Bob: 32-bit `CryptCNN` models with 40,609 parameters each, initialized with the same pair seed 7 for every condition. Messages and keys were freshly sampled during training and evaluation.
-- Stage 1: 15,000 Alice/Bob updates, batch size 16,384 on an A100, privacy weight 8.0, and four total Eve updates per Alice/Bob update. CNN-only and MLP-only each gave all four updates to one Eve; hybrid split them two per Eve and optimized Alice against the Eve with the lower reconstruction error on each batch.
-- Fresh attackers: ciphertext-only MLPs with 5,027 or 80,168 parameters, each initialized with seeds 101, 102, and 103. Each was evaluated after 5,000 and 20,000 updates on held-out messages.
-- The executed runs used `BOB_MIN = 0.95` as the attack gate. The project's 96% Bob bit-accuracy criterion is applied separately when interpreting the results; the notebook's checked-in default is 99%.
+- Source: [combined seed-7–9 JSONL](results/all_conditions_seeds7_8_9.jsonl). It keeps the 20,000-update attacker checkpoints and recomputed summaries across pair seeds. The three configuration records correspond to the separate Colab runs; their training and evaluation settings agree.
+- Alice and Bob: 32-bit `CryptCNN` models with 40,609 parameters each, initialized identically across conditions for a given pair seed. Messages and keys were sampled afresh for training and held-out evaluation.
+- Stage 1: 15,000 Alice/Bob updates, batch size 16,384 on an A100, privacy weight 8.0, and four total Eve updates per Alice/Bob update. CNN-only and MLP-only gave all four updates to one Eve; hybrid split them two per Eve and optimized Alice against the better-performing Eve on each batch. The single-Eve and hybrid conditions thus match total Eve update budget, but differ in updates per Eve.
+- Fresh attacks: ciphertext-only MLPs with 5,027 or 80,168 parameters, each trained for 20,000 updates from seeds 101, 102, and 103. Test accuracy uses 65,536 newly sampled messages per pair; validation uses 16,384.
+- The runs set `BOB_MIN = 0.95` to decide whether to train fresh attackers. The project's 96% Bob bit-accuracy criterion is applied separately to validation and test results. The checked-in notebook defaults to 99%, so the recorded run configuration should be used when reproducing these results.
 
-#### Bob communication
+#### Per-pair results
 
-| Stage-1 Eve | Bob validation bit accuracy | Bob test bit accuracy | Bob test full-message accuracy | Fresh attack status |
-| --- | ---: | ---: | ---: | --- |
-| Hybrid CNN + MLP | 96.10% | 96.08% | 28.22% | Completed |
-| CNN only | 49.89% | 50.01% | 0.00% | Skipped: Bob failed |
-| MLP only | 99.98% | 99.98% | 99.53% | Completed |
+Fresh-attacker columns are mean **test bit accuracy** over three attacker starts after 20,000 updates. A skipped attack means Bob failed the run's 95% validation/test gate.
 
-The hybrid pair meets the 96% bit criterion on validation and test, but only 28.22% of complete 32-bit messages were correct. The MLP-only pair communicates almost perfectly. The CNN-only pair remained at chance-level decoding, so its absence of attack results is a failed communication run, not evidence of privacy.
+| Stage-1 Eve | Pair seed | Bob test bits | Bob test whole messages | Fresh 5k MLP bits | Fresh 80k MLP bits |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| CNN only | 7 | 50.01% | 0% | skipped | skipped |
+| CNN only | 8 | 50.00% | 0% | skipped | skipped |
+| CNN only | 9 | 100.00% | 100.00% | 100.00% | 100.00% |
+| MLP only | 7 | 99.98% | 99.53% | 56.42% | 67.90% |
+| MLP only | 8 | 99.99% | 99.60% | 59.97% | 70.00% |
+| MLP only | 9 | 99.99% | 99.71% | 57.69% | 68.64% |
+| Hybrid CNN + MLP | 7 | 96.08% | 28.22% | 56.94% | 67.39% |
+| Hybrid CNN + MLP | 8 | 99.97% | 99.36% | 53.91% | 65.08% |
+| Hybrid CNN + MLP | 9 | 99.98% | 99.54% | 55.44% | 70.02% |
 
-#### Fresh MLP attacks
+![Bob bit and complete-message accuracy across pair seeds 7–9](img/week4_bob_communication_seeds7_9.svg)
 
-Held-out test bit accuracy is the mean over three attacker initializations (`n = 3`); parentheses give the sample standard deviation in percentage points. All completed fresh attackers had 0% full-message accuracy.
+![Fresh 5k and 80k MLP attack accuracy after 20,000 updates, by pair seed](img/week4_fresh_mlp_attacks_seeds7_9.svg)
 
-| Stage-1 Eve | Fresh MLP size | After 5,000 updates | After 20,000 updates |
-| --- | ---: | ---: | ---: |
-| Hybrid CNN + MLP | 5k | 55.70% (0.69 pp) | 56.94% (1.22 pp) |
-| Hybrid CNN + MLP | 80k | 61.92% (2.48 pp) | 67.39% (1.15 pp) |
-| MLP only | 5k | 56.29% (0.03 pp) | 56.42% (0.04 pp) |
-| MLP only | 80k | 61.08% (2.28 pp) | 67.90% (1.77 pp) |
+#### Across-pair summaries
 
-At 20,000 updates, the 80k MLP exceeds the 5k MLP by 10.45 percentage points against hybrid and 11.48 points against MLP-only. The 80k means differ by just 0.51 points between the two conditions, while Bob's full-message accuracy differs sharply. This one-seed experiment therefore shows a capacity-sensitive bit leak in both successful pairs, with no demonstrated hybrid privacy advantage. Three attacker starts measure variation in the attack on each frozen pair; they do not replicate Alice/Bob training. Further pair seeds are needed to estimate the frequency of communication failure and any condition-level effect.
+For each successful pair, attacker scores are averaged over its three starts. The table then averages those pair means; parentheses give sample standard deviation **across pairs**. CNN's `n = 1` attack result is conditional on its only successful pair, seed 9.
+
+| Stage-1 Eve | Bob passed 96% bits | 5k MLP test bits | 80k MLP test bits | 80k minus 5k |
+| --- | ---: | ---: | ---: | ---: |
+| CNN only | 1/3 | 100.00% (`n = 1`) | 100.00% (`n = 1`) | 0.00 pp |
+| MLP only | 3/3 | 58.03% (1.80 pp) | 68.85% (1.07 pp) | 10.82 pp |
+| Hybrid CNN + MLP | 3/3 | 55.43% (1.51 pp) | 67.49% (2.47 pp) | 12.07 pp |
+
+#### Interpretation and CNN anomaly
+
+The larger fresh MLP recovered more plaintext bits on **every** successful MLP-only and hybrid pair. Hybrid's 80k attack accuracy was lower than MLP-only on seeds 7 and 8, but higher on seed 9; the three-pair means differ by 1.35 percentage points. These data do not establish a reliable hybrid privacy advantage. Hybrid seed 7 also illustrates why Bob's bit and whole-message metrics must both be reported: 96.08% bit accuracy corresponded to only 28.22% completely correct messages.
+
+The CNN-only condition behaved differently. Bob failed to communicate on seeds 7 and 8, so those pairs were rightly excluded from attacks. On seed 9, Bob recovered **100% of held-out messages**, while the in-training CNN Eve recovered only **50.06% of bits**. Yet all three fresh 5k MLPs and all three fresh 80k MLPs recovered **100% of bits and complete messages** on held-out data. The notebook gives fresh attackers ciphertext without the key and generates the held-out test set from a separate random stream. This is internally consistent with the trained CNN Eve missing an easily learned ciphertext-to-plaintext mapping; it does not prove that Alice copied plaintext directly or that the CNN architecture itself is the sole cause. The stored JSONL lacks ciphertext samples and model checkpoints, so the exact mechanism cannot be checked from these results alone. A targeted follow-up should save the seed-9 models, test how ciphertext changes when the key changes, and retrain a fresh CNN Eve against the frozen pair.
+
+The defensible conclusion is that this CNN-only training setup is **unreliable as a communication baseline and ineffective as a privacy defense in its one successful run**. The capacity effect for fresh MLP attackers is more repeatable across MLP-only and hybrid pairs, while any advantage of hybrid Stage-1 training remains uncertain with three pair seeds.
 
 ## Current interpretation
 
-Across the repeated 20,000-update studies on pairs meeting the project's stated reliability criterion, attacker architecture, capacity, training time, and the Stage-1 Eve all interact. Against the MLP-Eve-trained pair, MLP has a strong size trend, Transformer has a weaker non-monotonic trend, CNN is flat, and the incomplete BiLSTM results rise modestly through 40k. Against the CNN-Eve-trained pair, MLP attacks scale sharply to 80.89% bit accuracy and recover some complete messages, while CNN and Transformer attacks are also well above chance at every tested size. Against the Transformer-Eve-trained pair, MLP again scales strongly, while CNN and Transformer attacks are weaker and variable; Bob met the 96% threshold but was less accurate than the earlier near-perfect Week 3 pairs. The new seed-7 hybrid comparison shows similarly strong fresh 80k MLP bit recovery against hybrid and MLP-only training, while CNN-only training failed to produce a communicating pair. Parameter count alone therefore does not predict attack strength or learned-cipher robustness, and the hybrid result does not yet establish a condition-level benefit.
+Across the repeated 20,000-update studies on pairs meeting the project's stated reliability criterion, attacker architecture, capacity, training time, and the Stage-1 Eve all interact. Against the MLP-Eve-trained Week 3 pair, MLP has a strong size trend, Transformer a weaker non-monotonic trend, CNN is flat, and the incomplete BiLSTM results rise modestly through 40k. Against the CNN-Eve-trained Week 3 pair, MLP attacks scale sharply to 80.89% bit accuracy and recover some complete messages, while CNN and Transformer attacks are also above chance. Against the Transformer-Eve-trained pair, MLP again scales strongly, while CNN and Transformer attacks are weaker and variable. In the new three-seed CNN/MLP/hybrid comparison, fresh 80k MLPs outperform 5k MLPs on every successful MLP-only and hybrid pair; hybrid shows no consistent privacy benefit. CNN-only fails communication on two seeds, and the third pair is fully broken by both fresh MLP sizes. These studies support a repeatable MLP capacity effect under several Stage-1 conditions, while the performance of any particular training condition still requires careful checks of Bob's communication and attacker generalization.
 
 ## Reference
 
