@@ -74,7 +74,7 @@ The [llms](llms/) section focuses on model internals and from-scratch implementa
 | [Mixture of Depths](llms/mixture_of_depths/) | Dynamic compute allocation, recurrent depth, and looped Transformers |
 | [World Models](llms/world_models/) | Simulators, RSSMs, Iris, I-JEPA, energy-based models, and V-JEPA |
 
-Additional focused references cover [Gated DeltaNet](llms/gated_delta_net.md), [Kimi Delta Attention](llms/kimi_gated_delta_net.md), [Jev architecture](llms/jev_architecture.md), sparse attention, and Qwen architectures.
+Additional focused references cover [Nemotron 3 Ultra](llms/nemotron_3_ultra.md), [Gated DeltaNet](llms/gated_delta_net.md), [Kimi Delta Attention](llms/kimi_gated_delta_net.md), [Jev architecture](llms/jev_architecture.md), sparse attention, and Qwen architectures.
 
 ### Machine Learning and AI Topics
 
