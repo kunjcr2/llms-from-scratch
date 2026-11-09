@@ -77,11 +77,11 @@ Until these are run, avoid describing the current observations as a general secu
 ## Reproduction and file map
 
 - [`RESULTS.md`](RESULTS.md): chronological experiment record, tables, figures, caveats, and current interpretation.
-- [`scripts/hybrid_eve_mlp_study.ipynb`](scripts/hybrid_eve_mlp_study.ipynb): three-condition CNN, MLP, and hybrid Stage-1 study with fresh MLP attacks.
-- [`scripts/attacker_size_repeated_a100.ipynb`](scripts/attacker_size_repeated_a100.ipynb): repeated fresh-attacker size study on an A100.
-- [`scripts/mlp_eve_xgboost_followup.ipynb`](scripts/mlp_eve_xgboost_followup.ipynb): MLP-Eve pairs attacked with XGBoost and a fresh MLP.
+- [`scripts/week4_hybrid_eve_mlp_study.ipynb`](scripts/week4_hybrid_eve_mlp_study.ipynb): three-condition CNN, MLP, and hybrid Stage-1 study with fresh MLP attacks.
+- [`scripts/week3_attacker_size_repeated_a100.ipynb`](scripts/week3_attacker_size_repeated_a100.ipynb): repeated fresh-attacker size study on an A100.
+- [`scripts/week4_mlp_eve_xgboost_followup.ipynb`](scripts/week4_mlp_eve_xgboost_followup.ipynb): MLP-Eve pairs attacked with XGBoost and a fresh MLP.
+- [`scripts/week5_stronger_mlp_eve_study.ipynb`](scripts/week5_stronger_mlp_eve_study.ipynb): matched 40k versus 80k training-time MLP Eve study for Colab A100.
 - Other notebooks in `scripts/`: early pilots, capacity sweeps, ResNet-18 experiments, and follow-ups.
-- `results/`: checked-in JSONL/JSON measurements. `img/`: plots referenced by `RESULTS.md`.
-- [`POST_WK4.md`](POST_WK4.md): the Week 4 research update and planned next steps.
+- `results/`: location for future run outputs. `img/`: plots referenced by `RESULTS.md`.
 
 For Colab runs, set the condition, pair seed, run name, and `BOB_MIN` explicitly before executing a notebook top to bottom. Keep batch size, update budget, attacker seeds, held-out split, and the communication gate consistent when comparing conditions. The checked-in hybrid notebook defaults to a 99% gate, while the Week 4 recorded runs used `BOB_MIN = 0.95` and were interpreted with the project's 96% criterion; do not silently mix these settings.

@@ -139,7 +139,7 @@ Fresh CNN and MLP attackers recover about 54–56% of plaintext bits at every te
 
 #### Setup
 
-- Notebook: [`scripts/mlp_attacker_size_same_pair.ipynb`](scripts/mlp_attacker_size_same_pair.ipynb).
+- Notebook: [`scripts/week2_attacker_size_same_pair.ipynb`](scripts/week2_attacker_size_same_pair.ipynb).
 - Seed: 7. Alice and Bob were trained against a ciphertext-only `MLP(32 → 133 → 218 → 32)` Eve, then frozen for all attacks.
 - Alice, Bob, and the training MLP Eve each have 40,609 parameters. Bob's held-out bit accuracy was 100.0%.
 - Fresh CNN, MLP, BiLSTM, and Transformer attackers were tested at 5k, 10k, 20k, 40k, and 80k target parameters; each attack used 5,000 steps and the same 16,384 held-out messages.
@@ -161,7 +161,7 @@ All recorded fresh attackers are close to chance (50%). CNN and MLP recovery is 
 
 #### Setup and completion status
 
-- Notebook: [`scripts/attacker_size_repeated_a100.ipynb`](scripts/attacker_size_repeated_a100.ipynb).
+- Notebook: [`scripts/week3_attacker_size_repeated_a100.ipynb`](scripts/week3_attacker_size_repeated_a100.ipynb).
 - Pair seed: 7. Alice and Bob were trained for 5,000 steps against a 40,609-parameter MLP Eve, then frozen.
 - Fresh attacker seeds: 101, 102, and 103. Target sizes: 5k, 10k, 20k, 40k, and 80k parameters.
 - Each attacker used batches of 16,384 and was evaluated on the same 65,536 held-out messages at 5,000 and 20,000 steps.
@@ -364,7 +364,7 @@ The defensible conclusion is that this CNN-only training setup is **unreliable a
 
 #### Setup
 
-- Source: consolidated follow-up run records (JSON omitted from the repository after generating the summary and figure). The original artifact contained the Stage-1 and Stage-2 records for all three seeds and base64-encoded, SHA-256-checked Alice/Bob `.pt` checkpoints. The [Colab notebook](scripts/mlp_eve_xgboost_followup.ipynb) generated the runs.
+- Source: consolidated follow-up run records (JSON omitted from the repository after generating the summary and figure). The original artifact contained the Stage-1 and Stage-2 records for all three seeds and base64-encoded, SHA-256-checked Alice/Bob `.pt` checkpoints. The [Colab notebook](scripts/week4_mlp_eve_xgboost_followup.ipynb) generated the runs.
 - Alice/Bob: 32-bit `CryptCNN` models (40,609 parameters each), trained against a ciphertext-only `MLPEve(32 → 133 → 218 → 32)` with 40,609 parameters. Seeds 7, 8, and 9 each got 10,000 Alice/Bob updates, batch size 4,096, two Eve updates per Alice/Bob update, privacy weight 8, and learning rate 0.001. Fresh random 32-bit messages and keys were sampled during training.
 - Stage 2: Alice was frozen. Each pair generated 32,768 new ciphertext/plaintext training rows, 8,192 validation rows, and 16,384 separate held-out test rows with fresh random messages and keys. Attackers received ciphertext only; Bob received ciphertext and key. The split RNG seeds were `400000 + pair_seed`, `500000 + pair_seed`, and `600000 + pair_seed` for train, validation, and test.
 - XGBoost: 32 independent binary bit classifiers, each with 150 histogram trees of depth 4, learning rate 0.08, row and column subsampling 0.9, and minimum child weight 5. Bit `i` used seed `500000 + 32 × pair_seed + i`. A fresh 40,609-parameter MLP used the same fixed training rows, 5,000 minibatch updates, and validation-selected checkpoint. The optional random forest was not run.
