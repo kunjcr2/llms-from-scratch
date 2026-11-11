@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1100" viewBox="0 0 1200 1100" role="img" aria-labelledby="chart-title chart-desc">
+<title id="chart-title">Week 5 stronger MLP Eve replication, pair seeds 10 to 19</title>
+<desc id="chart-desc">A compact row chart compares Bob bit accuracy and fresh 80k MLP attack bit accuracy for training-time 40k and 80k MLP Eves. Four matched pairs leak more, four leak less, and two 80k Eve pairs fail communication.</desc>
+<rect width="1200" height="1100" fill="#FAFBFC"/>
+<g font-family="Inter, Segoe UI, Arial, sans-serif">
+<text x="52" y="44" fill="#596779" font-size="14" font-weight="700" text-anchor="start">CRYPT_DL / WEEK 5 / PAIR SEEDS 10–19</text>
+<text x="52" y="88" fill="#182330" font-size="31" font-weight="750" text-anchor="start">Stronger Eve: mixed leakage, two Bob failures</text>
+<text x="52" y="121" fill="#596779" font-size="17" font-weight="400" text-anchor="start">Same training and attack settings across both Eve sizes</text>
+<rect x="52" y="143" width="211" height="39" rx="19" fill="#F9EBE8"/>
+<text x="157.5" y="168" fill="#182330" font-size="15" font-weight="700" text-anchor="middle">4 more leakage</text>
+<rect x="276" y="143" width="211" height="39" rx="19" fill="#EAF5F1"/>
+<text x="381.5" y="168" fill="#182330" font-size="15" font-weight="700" text-anchor="middle">4 less leakage</text>
+<rect x="500" y="143" width="211" height="39" rx="19" fill="#F1F3F5"/>
+<text x="605.5" y="168" fill="#182330" font-size="15" font-weight="700" text-anchor="middle">2 Bob failures</text>
+<circle cx="55" cy="212" r="6" fill="#356AA2"/>
+<text x="70" y="218" fill="#182330" font-size="15" font-weight="400" text-anchor="start">40k training Eve</text>
+<circle cx="275" cy="212" r="6" fill="#DB8431"/>
+<text x="290" y="218" fill="#182330" font-size="15" font-weight="400" text-anchor="start">80k training Eve</text>
+<line x1="52" y1="240" x2="1148" y2="240" stroke="#D9E1E8"/>
+<text x="74" y="274" fill="#596779" font-size="14" font-weight="700" text-anchor="start">PAIR</text>
+<text x="195" y="274" fill="#596779" font-size="14" font-weight="700" text-anchor="start">BOB: TEST BITS</text>
+<text x="535" y="274" fill="#596779" font-size="14" font-weight="700" text-anchor="start">FRESH 80k ATTACKER: TEST BITS</text>
+<text x="965" y="274" fill="#596779" font-size="14" font-weight="700" text-anchor="start">CHANGE</text>
+<rect x="52" y="290" width="1096" height="65" rx="12" fill="#FFFFFF" stroke="#E9EDF2"/>
+<text x="74" y="331" fill="#182330" font-size="19" font-weight="750" text-anchor="start">Seed 10</text>
+<text x="195" y="330" font-size="17" font-weight="650"><tspan fill="#356AA2">99.95%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">99.99%</tspan></text>
+<text x="535" y="330" font-size="17" font-weight="650"><tspan fill="#356AA2">64.0%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">69.4%</tspan></text>
+<text x="965" y="330" fill="#B35C44" font-size="18" font-weight="750" text-anchor="start">+5.4 pp</text>
+<rect x="52" y="362" width="1096" height="65" rx="12" fill="#FFFFFF" stroke="#E9EDF2"/>
+<text x="74" y="403" fill="#182330" font-size="19" font-weight="750" text-anchor="start">Seed 11</text>
+<text x="195" y="402" font-size="17" font-weight="650"><tspan fill="#356AA2">99.98%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">99.98%</tspan></text>
+<text x="535" y="402" font-size="17" font-weight="650"><tspan fill="#356AA2">73.5%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">69.4%</tspan></text>
+<text x="965" y="402" fill="#248675" font-size="18" font-weight="750" text-anchor="start">-4.1 pp</text>
+<rect x="52" y="434" width="1096" height="65" rx="12" fill="#FFFFFF" stroke="#E9EDF2"/>
+<text x="74" y="475" fill="#182330" font-size="19" font-weight="750" text-anchor="start">Seed 12</text>
+<text x="195" y="474" font-size="17" font-weight="650"><tspan fill="#356AA2">99.99%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#B35C44">59.35%</tspan></text>
+<text x="535" y="474" font-size="17" font-weight="650"><tspan fill="#356AA2">67.2%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#596779">skipped</tspan></text>
+<text x="965" y="474" fill="#B35C44" font-size="17" font-weight="700" text-anchor="start">Bob failed</text>
+<rect x="52" y="506" width="1096" height="65" rx="12" fill="#FFFFFF" stroke="#E9EDF2"/>
+<text x="74" y="547" fill="#182330" font-size="19" font-weight="750" text-anchor="start">Seed 13</text>
+<text x="195" y="546" font-size="17" font-weight="650"><tspan fill="#356AA2">99.95%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">99.94%</tspan></text>
+<text x="535" y="546" font-size="17" font-weight="650"><tspan fill="#356AA2">70.5%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">68.6%</tspan></text>
+<text x="965" y="546" fill="#248675" font-size="18" font-weight="750" text-anchor="start">-1.9 pp</text>
+<rect x="52" y="578" width="1096" height="65" rx="12" fill="#FFFFFF" stroke="#E9EDF2"/>
+<text x="74" y="619" fill="#182330" font-size="19" font-weight="750" text-anchor="start">Seed 14</text>
+<text x="195" y="618" font-size="17" font-weight="650"><tspan fill="#356AA2">98.43%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#B35C44">63.32%</tspan></text>
+<text x="535" y="618" font-size="17" font-weight="650"><tspan fill="#356AA2">72.3%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#596779">skipped</tspan></text>
+<text x="965" y="618" fill="#B35C44" font-size="17" font-weight="700" text-anchor="start">Bob failed</text>
+<rect x="52" y="650" width="1096" height="65" rx="12" fill="#FFFFFF" stroke="#E9EDF2"/>
+<text x="74" y="691" fill="#182330" font-size="19" font-weight="750" text-anchor="start">Seed 15</text>
+<text x="195" y="690" font-size="17" font-weight="650"><tspan fill="#356AA2">98.40%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">99.99%</tspan></text>
+<text x="535" y="690" font-size="17" font-weight="650"><tspan fill="#356AA2">72.2%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">77.1%</tspan></text>
+<text x="965" y="690" fill="#B35C44" font-size="18" font-weight="750" text-anchor="start">+4.9 pp</text>
+<rect x="52" y="722" width="1096" height="65" rx="12" fill="#FFFFFF" stroke="#E9EDF2"/>
+<text x="74" y="763" fill="#182330" font-size="19" font-weight="750" text-anchor="start">Seed 16</text>
+<text x="195" y="762" font-size="17" font-weight="650"><tspan fill="#356AA2">99.99%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">99.98%</tspan></text>
+<text x="535" y="762" font-size="17" font-weight="650"><tspan fill="#356AA2">72.9%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">77.7%</tspan></text>
+<text x="965" y="762" fill="#B35C44" font-size="18" font-weight="750" text-anchor="start">+4.7 pp</text>
+<rect x="52" y="794" width="1096" height="65" rx="12" fill="#FFFFFF" stroke="#E9EDF2"/>
+<text x="74" y="835" fill="#182330" font-size="19" font-weight="750" text-anchor="start">Seed 17</text>
+<text x="195" y="834" font-size="17" font-weight="650"><tspan fill="#356AA2">99.95%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">99.98%</tspan></text>
+<text x="535" y="834" font-size="17" font-weight="650"><tspan fill="#356AA2">70.0%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">68.6%</tspan></text>
+<text x="965" y="834" fill="#248675" font-size="18" font-weight="750" text-anchor="start">-1.4 pp</text>
+<rect x="52" y="866" width="1096" height="65" rx="12" fill="#FFFFFF" stroke="#E9EDF2"/>
+<text x="74" y="907" fill="#182330" font-size="19" font-weight="750" text-anchor="start">Seed 18</text>
+<text x="195" y="906" font-size="17" font-weight="650"><tspan fill="#356AA2">99.97%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">99.99%</tspan></text>
+<text x="535" y="906" font-size="17" font-weight="650"><tspan fill="#356AA2">70.2%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">77.8%</tspan></text>
+<text x="965" y="906" fill="#B35C44" font-size="18" font-weight="750" text-anchor="start">+7.6 pp</text>
+<rect x="52" y="938" width="1096" height="65" rx="12" fill="#FFFFFF" stroke="#E9EDF2"/>
+<text x="74" y="979" fill="#182330" font-size="19" font-weight="750" text-anchor="start">Seed 19</text>
+<text x="195" y="978" font-size="17" font-weight="650"><tspan fill="#356AA2">98.42%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">99.94%</tspan></text>
+<text x="535" y="978" font-size="17" font-weight="650"><tspan fill="#356AA2">68.8%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">68.0%</tspan></text>
+<text x="965" y="978" fill="#248675" font-size="18" font-weight="750" text-anchor="start">-0.8 pp</text>
+<text x="55" y="1047" fill="#596779" font-size="14" font-weight="400" text-anchor="start">Fresh attacker: mean of 3 starts after 20,000 updates; 65,536 held-out messages per pair.</text>
+<text x="55" y="1072" fill="#596779" font-size="14" font-weight="400" text-anchor="start">Higher attacker accuracy means more leakage. Failed Bob pairs have no attack comparison.</text>
+</g></svg>
