@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="625" viewBox="0 0 1200 625" role="img" aria-labelledby="chart-title chart-desc">
+  <title id="chart-title">Week 5: 40k versus 80k training-time MLP Eve</title>
+  <desc id="chart-desc">For seed 7, the fresh 80k attacker rises from 68.5 to 85.8 percent bit accuracy. For seed 8, Bob fails with the 80k Eve and the attack is skipped. For seed 9, attacker accuracy falls from 82.9 to 75.7 percent.</desc>
+  <rect width="1200" height="625" fill="#FAFBFC"/>
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <text x="52" y="43" fill="#596779" font-size="14" font-weight="700" letter-spacing="1.2">CRYPT_DL / WEEK 5 / SEEDS 7–9</text>
+    <text x="52" y="89" fill="#182330" font-size="32" font-weight="750">Did the stronger Eve help?</text>
+    <text x="52" y="121" fill="#596779" font-size="17">Three different outcomes across three pair seeds</text>
+    <circle cx="55" cy="158" r="6" fill="#356AA2"/>
+    <text x="70" y="164" fill="#182330" font-size="15">40k training Eve</text>
+    <circle cx="275" cy="158" r="6" fill="#DB8431"/>
+    <text x="290" y="164" fill="#182330" font-size="15">80k training Eve</text>
+    <line x1="52" y1="189" x2="1148" y2="189" stroke="#D9E1E8"/>
+    <text x="75" y="225" fill="#596779" font-size="14" font-weight="700">PAIR</text>
+    <text x="220" y="225" fill="#596779" font-size="14" font-weight="700">BOB: TEST BITS</text>
+    <text x="555" y="225" fill="#596779" font-size="14" font-weight="700">FRESH 80k ATTACKER: TEST BITS</text>
+    <text x="960" y="225" fill="#596779" font-size="14" font-weight="700">CHANGE</text>
+
+    <rect x="52" y="243" width="1096" height="91" rx="13" fill="#FFFFFF" stroke="#E9EDF2"/>
+    <text x="75" y="294" fill="#182330" font-size="21" font-weight="750">Seed 7</text>
+    <text x="220" y="294" font-size="18" font-weight="650"><tspan fill="#356AA2">99.97%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">99.91%</tspan></text>
+    <text x="555" y="294" font-size="18" font-weight="650"><tspan fill="#356AA2">68.5%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">85.8%</tspan></text>
+    <text x="960" y="287" fill="#B35C44" font-size="20" font-weight="750">+17.4 pp</text>
+    <text x="960" y="312" fill="#B35C44" font-size="14">more leakage</text>
+
+    <rect x="52" y="347" width="1096" height="91" rx="13" fill="#FFFFFF" stroke="#E9EDF2"/>
+    <text x="75" y="398" fill="#182330" font-size="21" font-weight="750">Seed 8</text>
+    <text x="220" y="398" font-size="18" font-weight="650"><tspan fill="#356AA2">99.99%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#B35C44">49.99%</tspan></text>
+    <text x="555" y="398" font-size="18" font-weight="650"><tspan fill="#356AA2">79.4%</tspan><tspan fill="#9CA9B6"> → skipped</tspan></text>
+    <text x="960" y="391" fill="#B35C44" font-size="20" font-weight="750">Bob failed</text>
+    <text x="960" y="416" fill="#596779" font-size="14">no attack comparison</text>
+
+    <rect x="52" y="451" width="1096" height="91" rx="13" fill="#FFFFFF" stroke="#E9EDF2"/>
+    <text x="75" y="502" fill="#182330" font-size="21" font-weight="750">Seed 9</text>
+    <text x="220" y="502" font-size="18" font-weight="650"><tspan fill="#356AA2">99.99%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">99.99%</tspan></text>
+    <text x="555" y="502" font-size="18" font-weight="650"><tspan fill="#356AA2">82.9%</tspan><tspan fill="#9CA9B6"> → </tspan><tspan fill="#DB8431">75.7%</tspan></text>
+    <text x="960" y="495" fill="#248675" font-size="20" font-weight="750">−7.1 pp</text>
+    <text x="960" y="520" fill="#248675" font-size="14">less leakage</text>
+
+    <text x="55" y="587" fill="#596779" font-size="14">Attacker results: mean of 3 fresh starts, 20,000 updates, 65,536 held-out messages per pair.</text>
+    <text x="55" y="610" fill="#596779" font-size="14">Higher attacker accuracy means more leakage. Chance bit accuracy is 50%.</text>
+  </g>
+</svg>
