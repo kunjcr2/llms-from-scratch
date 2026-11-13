@@ -5,5 +5,6 @@ Structured notes from Stanford's CS336 course, based on lecture transcripts. Thi
 ## Notes
 
 - [1. Course Introduction](01_course_introduction.md)
+- [2. Resource Accounting](02_resource_accounting.md)
 
 Future transcript notes will follow the concise guidance in [AGENTS.md](AGENTS.md).
