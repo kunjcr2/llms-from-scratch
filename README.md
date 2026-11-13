@@ -66,6 +66,10 @@ The [foundations](foundations/) section contains the material needed before movi
 
 The [llms](llms/) section focuses on model internals and from-scratch implementations.
 
+| Course / Area | Coverage |
+| --- | --- |
+| [Stanford CS336: Language Modeling from Scratch](llms/cs336_stanford/) | Lecture transcripts and structured notes on building, training, and evaluating language models |
+
 | Area | Coverage |
 | --- | --- |
 | [GPT](llms/gpt/) | Tokenization, attention, architecture, pretraining, post-training, and fine-tuning |
