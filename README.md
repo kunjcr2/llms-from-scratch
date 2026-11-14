@@ -6,6 +6,8 @@ This repository brings together the theory, implementations, experiments, notebo
 
 **Portfolio:** [kunjcr2.github.io](https://kunjcr2.github.io)
 
+**MY RESEARCH - [https://github.com/kunjcr2/cs180h](https://github.com/kunjcr2/cs180h)**
+
 ## Repository Overview
 
 ```text
